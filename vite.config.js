@@ -11,5 +11,5 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  publicPath: process.env.NODE_ENV === "production" ? "/segmint-web3/" : "/",
+  publicPath: process.env.NODE_ENV === "production" ? "/segmint-web3/frontend" : "/",
 })
