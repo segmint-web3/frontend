@@ -127,16 +127,23 @@ export const Provider = {
       console.log('setProvider', provider);
       // We have new instance of provider
       // Reset everything
-      state.provider = provider;
       state.providerId += 1;
       state.collectionContract = null;
       state.collectionCachedState = null;
       state.collectionLoaded = false;
       state.tiles = [];
-      if (state.providerSubscriber) {
-        state.providerSubscriber.unsubscribe();
-      }
+
+      // unsubscribe previous provider
+      state.providerSubscriber && state.providerSubscriber.unsubscribe();
       state.providerSubscriber = null;
+
+      state.provider = provider;
+      state.provider.subscribe('networkChanged').then((subscriber) => {
+        subscriber.on('data', (event) => {
+          // reinit tiles on network changed.
+          providerChanged(provider, state.providerId, this.commit);
+        });
+      })
       providerChanged(provider, state.providerId, this.commit);
     },
     setCollection(state, {providerId, collectionContract, collectionCachedState, collectionSubscriber}) {
