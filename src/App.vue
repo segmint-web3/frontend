@@ -1,15 +1,18 @@
 <template>
   <div id="app">
+    <HeaderComponent />
     <CanvasComponent />
   </div>
 </template>
 
 <script>
+import HeaderComponent from './components/HeaderComponent.vue'
 import CanvasComponent from './components/CanvasComponent.vue'
 
 export default {
   name: 'App',
   components: {
+    HeaderComponent,
     CanvasComponent
   },
   mounted() {
@@ -19,16 +22,17 @@ export default {
 </script>
 
 <style>
+@font-face {
+  font-family: "ChakraPetch";
+  src: local("ChakraPetch"),
+   url(../public/fonts/ChakraPetch-Regular.ttf) format("truetype");
+}
 html, body {
   padding: 0;
   margin: 0;
+  background-color: #3B0087;
 }
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  //margin-top: 60px;
+  font-family: "ChakraPetch", Helvetica, Arial;
 }
 </style>

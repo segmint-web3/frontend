@@ -92,7 +92,7 @@ async function loadTiles(commit, collectionContract, cachedState, providerId) {
           nftId: "4294967295",
           x: x * 10,
           y: y * 10,
-          pixels: Array(10 * 10 * 4).fill(255)
+          pixels: Array(10 * 10 * 4).fill(0)
         }
         tiles.push(tile);
         tilesByIndex[index] = tile;

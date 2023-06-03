@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="wrapper">
     <claim-modal :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onModalSuccess"/>
     <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div :style="selectionHeaderStyle">
@@ -16,7 +16,8 @@
       <br />
     </div>
     <button class="mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess" v-on:click="claim">
-      SegMint pixels {{this.selectionEndX - this.selectionStartX + 10}}x{{this.selectionEndY - this.selectionStartY + 10}}
+      <!-- SegMint pixels {{this.selectionEndX - this.selectionStartX + 10}}x{{this.selectionEndY - this.selectionStartY + 10}} -->
+      Mint segment
     </button>
   </div>
 </template>
@@ -114,7 +115,7 @@ export default {
           top: `${this.selectionStartY}px`,
           width: `${this.selectionEndX - this.selectionStartX + 10}px`,
           height: `${this.selectionEndY - this.selectionStartY + 10}px`,
-          backgroundColor: 'rgba(150,150,0,0.3)'
+          backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
       return {
@@ -123,7 +124,7 @@ export default {
         top: 0,
         width: 0,
         height: 0,
-        backgroundColor: 'rgba(150,150,0,0.3)'
+        backgroundColor: 'rgba(204,255,0,0.5)'
       }
     },
     selectionHeaderStyle: function () {
@@ -159,10 +160,26 @@ export default {
           top: 0,
           width: 0,
           height: 0,
-          backgroundColor: 'rgba(150,150,0,0.3)'
+          backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
     }
+  },
+  mounted() {
+    this.ctx = this.$refs.canvas.getContext('2d');
+    this.imageData = this.ctx.createImageData(10, 10);
+    // console.log(this.$store.state.Provider.tiles, 'tiles')
+    // if (this.$store.state.Provider.tiles.length > 0) {
+    //   this.redraw(this.$store.state.Provider.tiles);
+    // }
+    this.$store.subscribe((mutation) => {
+      console.log(mutation, 'mutation')
+      if (mutation.type === 'Provider/setTiles') {
+        this.redraw(mutation.payload.tiles);
+      } else if (mutation.type === 'Provider/setTile') {
+        this.drawTile(mutation.payload.tile);
+      }
+    })
   },
   methods: {
     clearSelection() {
@@ -386,57 +403,48 @@ export default {
       this.clearSelection();
       this.$modal.hide('claim-modal');
     }
-  },
-  mounted() {
-    this.ctx = this.$refs.canvas.getContext('2d');
-    this.imageData = this.ctx.createImageData(10, 10);
-    if (this.$store.state.Provider.tiles.length > 0) {
-      this.redraw(this.$store.state.Provider.tiles);
-    }
-    this.$store.subscribe((mutation) => {
-      if (mutation.type === 'Provider/setTiles') {
-        this.redraw(mutation.payload.tiles);
-        // for (let tile of mutation.payload.tiles) {
-        // }
-      } else if (mutation.type === 'Provider/setTile') {
-        this.drawTile(mutation.payload.tile);
-      }
-    })
   }
 }
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.wrapper {
+  font-family: "ChakraPetch", Helvetica, Arial;
+}
 .canvas-container {
-  margin: 60px auto;
+  margin: 100px auto 50px;
   position: relative;
   width: 1000px;
   height: 1000px;
   user-select: none;
-  border: 1px solid;
 }
 
 canvas {
   user-select: none;
   width: 1000px;
   height: 1000px;
-  image-rendering: pixelated;
   margin: 0;
   padding: 0;
-  border: 0px solid;
   box-sizing: border-box;
-//transform: scale(0.5, 0.5);
+  background-image: repeating-linear-gradient(#7000FF 0 1px, transparent 1px 100px), repeating-linear-gradient(90deg, #7000FF 0 1px, transparent 1px 100px);
+  background-size: 10px 10px;
+  background-color: #21004B;
 }
 
 .mint-button {
   position: fixed;
   bottom: 20px;
   left: calc(50% - 80px);
-  width: 160px;
-  height: 60px;
-  background: yellow;
+  width: 249px;
+  height: 70px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #7000FF;
+  font-family: inherit;
+  background: #CCFF00;
   cursor: pointer;
+  border: none;
   z-index: 2;
 }
 
