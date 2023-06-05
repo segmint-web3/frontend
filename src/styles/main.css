@@ -1,0 +1,56 @@
+:root {
+  --primary: #CCFF00;
+  --primary-transparent: #ccff0080;
+  --violet: #7000FF;
+  --dark-blue: #3B0087;
+  --dark: #21004B;
+}
+
+.primary-button {
+  padding: 5px 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--violet);
+  background: var(--primary);
+  border: 4px solid var(--primary);
+  cursor: pointer;
+  font-family: "ChakraPetch", Helvetica, Arial;
+}
+.primary-button:active {
+  color: var(--primary);
+  background-color: var(--dark-blue);
+  border: 4px solid var(--primary);
+}
+
+.secondary-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  background-color: transparent;
+  cursor: pointer;
+  font-family: "ChakraPetch", Helvetica, Arial;
+}
+.secondary-button:active {
+  color: var(--primary);
+  background-color: var(--dark-blue);
+  border: 2px solid var(--dark-blue);
+}
+
+.transparent-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  background-color: transparent;
+  cursor: pointer;
+  font-family: "ChakraPetch", Helvetica, Arial;
+}

@@ -1,26 +1,20 @@
 <template>
-  <modal name="claim-modal" height="auto" @before-close="beforeClose">
-    <div style="min-height: 300px; min-width: 300px; position: relative;">
+  <modal class="claim-modal" name="claim-modal" height="auto" @before-close="beforeClose">
+    <div class="modal-content">
       <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
-      <div style="margin: auto">
-        <br />
-        <br />
-        <label for="assetsFieldHandle" class="block cursor-pointer">
-          <div>
-            Please upload a picture {{this.width}}x{{this.height}}px.
-            You will can change the picture later.
-          </div>
-        </label>
+      <div class="instructions">
+          Please upload a picture {{this.width}}x{{this.height}}px.
+          You will can change the picture later.
       </div>
-      <br />
-      <input type="file" multiple name="fields[assetsFieldHandle][]" id="assetsFieldHandle"
-             class="" @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
-      <br />
+      <label for="assetsFieldHandle" class="file-upload">
+      <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
+             @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
+        <button class="transparent-button">Select Image</button>
+      </label>
       <div :style="canvasContainerStyles" class="canvasContainer">
         <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
       </div>
-      <br />
-      <button v-if="canBeClaimed" v-on:click="claim">
+      <button v-if="canBeClaimed" class="primary-button" v-on:click="claim">
         Claim tiles
       </button>
     </div>
@@ -133,8 +127,37 @@ canvas {
   image-rendering: pixelated;
 }
 
-button {
-  margin-bottom: 20px;
+.claim-modal {
+  background-color: rgb(59 0 135 / 50%);
+}
+.modal-content {
+  position: fixed;
+  top: 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 300px;
+  min-width: 300px; 
+  padding: 20px;
+  background-color: #21004B;
+  border: 10px solid #7000FF;
+  color: #CCFF00;
 }
 
+.instructions {
+  margin: 20px;
+}
+.file-upload {
+  position: relative;
+  cursor: pointer;
+}
+.file-upload button {
+  pointer-events: none;
+}
+.file-input {
+  visibility: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
 </style>

@@ -15,7 +15,7 @@
       <canvas ref="canvas" width="1000" height="1000"></canvas>
       <br />
     </div>
-    <button class="mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess" v-on:click="claim">
+    <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess" v-on:click="claim">
       <!-- SegMint pixels {{this.selectionEndX - this.selectionStartX + 10}}x{{this.selectionEndY - this.selectionStartY + 10}} -->
       Mint segment
     </button>
@@ -436,15 +436,8 @@ canvas {
   position: fixed;
   bottom: 20px;
   left: calc(50% - 80px);
-  width: 249px;
-  height: 70px;
-  font-size: 32px;
-  font-weight: 700;
-  color: #7000FF;
   font-family: inherit;
-  background: #CCFF00;
   cursor: pointer;
-  border: none;
   z-index: 2;
 }
 
