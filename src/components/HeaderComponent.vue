@@ -13,7 +13,7 @@
     <div v-else class="wallet-info">
       <div class="info">
         <div class="address">{{ address }}</div>
-        <div class="coins"></div>
+        <div class="coins">10 VENOM</div>
       </div>
       <img :src="`${publicPath}icons/exit.svg`" alt="exit" class="exit" @click="disconnect">
     </div>
@@ -94,5 +94,9 @@ export default {
 }
 .address {
   font-weight: 700;
+}
+.coins {
+  text-align: end;
+  color: var(--primary);
 }
 </style>

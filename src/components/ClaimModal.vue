@@ -1,22 +1,31 @@
 <template>
   <modal class="claim-modal" name="claim-modal" height="auto" @before-close="beforeClose">
-    <div class="modal-content">
+    <div class="flex modal-content">
       <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
       <div class="instructions">
           Please upload a picture {{this.width}}x{{this.height}}px.
-          You will can change the picture later.
       </div>
       <label for="assetsFieldHandle" class="file-upload">
-      <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
+        <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
              @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
         <button class="transparent-button">Select Image</button>
       </label>
       <div :style="canvasContainerStyles" class="canvasContainer">
         <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
       </div>
-      <button v-if="canBeClaimed" class="primary-button" v-on:click="claim">
-        Claim tiles
-      </button>
+      <form>
+        <div class="flex title">
+          <label for="title">Title:</label>
+          <input v-model="title" type="text" id="title" class="input">
+        </div>
+        <div class="flex link">
+          <label for="link">Link:</label>
+          <input v-model="link" type="text" id="link" class="input">
+        </div>
+        <button v-if="canBeClaimed" class="primary-button" v-on:click="claim">
+          Mint segment
+        </button>
+      </form>
     </div>
   </modal>
 </template>
@@ -29,7 +38,9 @@ export default {
   data: function () {
     return {
       coloredTiles: [],
-      claimInProgress: false
+      claimInProgress: false,
+      title: '',
+      link: ''
     }
   },
   props: ['x', 'y', 'width', 'height', 'onsuccess'],
@@ -61,7 +72,7 @@ export default {
       const width = this.$props.width;
       const height = this.$props.height;
 
-      ctx.fillStyle = 'white';
+      ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, width, height);
 
       this.coloredTiles = [];
@@ -96,9 +107,8 @@ export default {
       if (this.claimInProgress)
         return
 
-      // TODO add inputs to specify descriptions nad urls
-      const description = 'Test description';
-      const url = 'https://google.com';
+      const description = this.title;
+      const url = this.link;
 
       const promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
       if (promise) {
@@ -133,9 +143,7 @@ canvas {
 .modal-content {
   position: fixed;
   top: 10%;
-  display: flex;
   flex-direction: column;
-  align-items: center;
   min-height: 300px;
   min-width: 300px; 
   padding: 20px;
@@ -159,5 +167,21 @@ canvas {
   position: absolute;
   width: 100%;
   height: 100%;
+}
+form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+}
+form label {
+  width: 60px;
+}
+form button {
+  width: 200px;
+  align-self: center;
+}
+.title, .link {
+  margin-bottom: 10px;
 }
 </style>
