@@ -203,7 +203,8 @@ export const Provider = {
     setNftData(state, {id, description, url}) {
       // TODO think how to make better to trigger update
       let mapping = Object.assign({}, state.nftDataById) ;
-      mapping[id] = {description, url};
+      // TODO validate url
+      mapping[id] = {description: description.slice(0, 2000), url: url.slice(0, 2000)};
       state.nftDataById = mapping;
     }
   },
