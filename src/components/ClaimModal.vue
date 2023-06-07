@@ -109,8 +109,9 @@ export default {
       if (this.claimInProgress)
         return
 
-      const description = this.title;
-      const url = this.link;
+      // TODO show alert if description/title is longer then 2000 symbols.
+      const description = this.title.trim().slice(0, 2000);
+      const url = this.link.trim().slice(0, 2000);
 
       const promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
       if (promise) {
