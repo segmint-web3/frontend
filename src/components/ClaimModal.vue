@@ -103,7 +103,8 @@ export default {
       }.bind(this)
       img.src = URL.createObjectURL(this.$refs.file.files[0]);
     },
-    claim() {
+    claim(event) {
+      event.preventDefault();
       if (this.claimInProgress)
         return
 
@@ -145,7 +146,7 @@ canvas {
   top: 10%;
   flex-direction: column;
   min-height: 300px;
-  min-width: 300px; 
+  min-width: 300px;
   padding: 20px;
   background-color: #21004B;
   border: 10px solid #7000FF;
