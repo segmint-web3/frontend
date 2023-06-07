@@ -88,7 +88,7 @@ export default {
         const left = this.lastMousePosX > 600;
         return {
           top: `${this.lastMousePosY}px`,
-          left: `${left ? this.lastMousePosX - 205 : this.lastMousePosX + 5}px`,
+          left: `${left ? this.lastMousePosX - 205 : this.lastMousePosX + 15}px`,
           width: '200px',
           minHeight: '20px'
         }
@@ -137,7 +137,8 @@ export default {
             width: `60px`,
             height: `20px`,
             borderRadius: '5px',
-            backgroundColor: 'yellow'
+            backgroundColor: 'yellow',
+            textAlign: 'center'
           }
           // Above selection
         } else {
@@ -149,7 +150,8 @@ export default {
             width: `60px`,
             height: `20px`,
             borderRadius: '5px',
-            backgroundColor: 'yellow'
+            backgroundColor: 'yellow',
+            textAlign: 'center'
           }
         }
       } else {

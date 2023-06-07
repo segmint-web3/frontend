@@ -150,6 +150,7 @@ canvas {
 .modal-content {
   position: fixed;
   top: 10%;
+  left: calc(50% - 166px);
   flex-direction: column;
   min-height: 300px;
   min-width: 300px;
