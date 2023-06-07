@@ -1,5 +1,5 @@
 <template>
-  <modal class="claim-modal" name="claim-modal" height="auto" @before-close="beforeClose">
+  <modal class="claim-modal" name="claim-modal" height="auto" @before-close="beforeClose" @before-open='beforeOpen'>
     <div class="flex modal-content">
       <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
       <div class="instructions">
@@ -63,6 +63,7 @@ export default {
       }
     },
   },
+
   methods: {
     onChange() {
       // todo parse image
@@ -125,6 +126,11 @@ export default {
     beforeClose(event) {
       if (this.claimInProgress)
         event.cancel();
+    },
+    beforeOpen() {
+      this.title = '';
+      this.link = '';
+      this.coloredTiles = [];
     }
   }
 }
