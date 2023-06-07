@@ -1,5 +1,5 @@
 <template>
-  <modal class="claim-modal" name="claim-modal" height="auto" @before-close="beforeClose" @before-open='beforeOpen'>
+  <modal class="claim-modal" :name="$props.name" height="auto" @before-close="beforeClose" @before-open='beforeOpen'>
     <div class="flex modal-content">
       <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
       <div class="instructions">
@@ -23,7 +23,7 @@
           <input v-model="link" type="text" id="link" class="input">
         </div>
         <button v-if="canBeClaimed" class="primary-button" v-on:click="claim">
-          Mint segment
+          {{$props.id ? 'Edit segment' : 'Mint segment'}}
         </button>
       </form>
     </div>
@@ -43,7 +43,7 @@ export default {
       link: ''
     }
   },
-  props: ['x', 'y', 'width', 'height', 'onsuccess'],
+  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess'],
   computed: {
     canBeClaimed: function() {
       return this.coloredTiles.length > 0;
@@ -113,7 +113,12 @@ export default {
       const description = this.title.trim().slice(0, 2000);
       const url = this.link.trim().slice(0, 2000);
 
-      const promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+      let promise;
+      if (this.$props.id) {
+        promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+      } else {
+        promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+      }
       if (promise) {
         this.claimInProgress = true;
         promise.then(() => {

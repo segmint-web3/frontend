@@ -2,14 +2,15 @@
 import {VenomConnect} from "venom-connect";
 import {Address, ProviderRpcClient} from "everscale-inpage-provider";
 import { EverscaleStandaloneClient } from "everscale-standalone-client";
-import CollectionAbi from "./abi/MillionDollarCollection.abi.json";
-import NftAbi from "./abi/Nft.abi.json";
+import CollectionAbi from "./abi/SegmintCollection.abi.json";
+import NftAbi from "./abi/SegmintNft.abi.json";
+import IndexAbi from "./abi/Index.abi.json";
 import {covertTileColorToPixels} from "@/utils/pixels";
 import bigInt from "big-integer";
 import {BN} from "bn.js";
 import Vue from "vue";
 
-const CollectionAddress = new Address("0:9839d6aa44562c00f0fb43a80069c4a9e9f60b2867c9a6101a9e9eb7feb7c3b3");
+const CollectionAddress = new Address("0:d3712cae0163630873fcfa00d6f84159780a5bfe825ee8d932523632b4ba5cb7");
 
 const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
@@ -32,8 +33,9 @@ async function providerChanged(provider, providerId, commit) {
 
   console.log('state got')
   const collectionSubscriber = new provider.Subscriber();
+  // ug
+  let waitToColorify = [];
   collectionSubscriber.transactions(collectionContract.address).on(async (data) => {
-
     console.log('We got a new transaction on collection address', data);
     // TODO parse events
     for (let tx of data.transactions) {
@@ -50,8 +52,13 @@ async function providerChanged(provider, providerId, commit) {
             y: y,
             pixels: covertTileColorToPixels(event.data.tileColors)
           }
-
           commit('Provider/setTile', {tile: tile, providerId: providerId});
+          if (waitToColorify.indexOf(event.data.nftId) !== -1) {
+            waitToColorify.splice(waitToColorify.indexOf(event.data.nftId), 1);
+            commit('Provider/setUserNftIsNotLoaded');
+          }
+        } else if (event.event === 'NftMinted') {
+          waitToColorify.push(event.data.nftId)
         }
       }
     }
@@ -103,6 +110,52 @@ async function loadTiles(commit, collectionContract, cachedState, providerId) {
   commit('Provider/setTiles', {providerId, tiles, tilesByIndex});
 }
 
+async function fetchAccountBalance(address, provider, commit) {
+  provider.getBalance(address).then(function(balance) {
+    if (balance) {
+      commit('Provider/setAccountBalance', {address, balance: (balance / 1_000_000_000).toFixed(1)});
+    }
+  })
+}
+
+async function fetchUserNfts(userAddress, provider, collectionContract, collectionCachedState, commit) {
+  console.log('Fetch users nfts!!!!!!');
+  const {codeHash: indexCodeHash} = await collectionContract.methods.getNftIndexCodeHash({answerId: 0, _owner: userAddress}).call({responsible: true, cachedState: collectionCachedState})
+  const {accounts: userNftsContracts} = await provider.getAccountsByCodeHash({codeHash: indexCodeHash});
+
+  let nfts = [];
+  for (let indexAddress of userNftsContracts) {
+    try {
+      let contract = new provider.Contract(IndexAbi, indexAddress);
+      let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
+      const nftContract = new provider.Contract(NftAbi, nftAddress);
+      const {state: nftContractFullState} = await nftContract.getFullState();
+      if (nftContractFullState && nftContractFullState.isDeployed) {
+        let nftInfo = await nftContract.methods.getNftCustomData({answerId:0}).call({responsible: true, cachedState: nftContractFullState});
+        if (nftInfo.owner.equals(userAddress)  && nftInfo.collection.equals(collectionContract.address)) {
+          const {nft: expectedNftAddress} = await collectionContract.methods.nftAddress({answerId: 0, id: nftInfo.id}).call({responsible: true, cachedState: collectionCachedState})
+          if (expectedNftAddress.equals(nftAddress)) {
+            nfts.push({
+              id: nftInfo.id,
+              owner: nftInfo.owner,
+              description: nftInfo.description,
+              url: nftInfo.url,
+              x: parseInt(nftInfo.tilePixelsStartX),
+              y: parseInt(nftInfo.tilePixelsStartY),
+              width: parseInt(nftInfo.tilePixelsEndX) - parseInt(nftInfo.tilePixelsStartX),
+              height: parseInt(nftInfo.tilePixelsEndY) - parseInt(nftInfo.tilePixelsStartY)
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.log(e);
+      // nothing
+    }
+  }
+  commit('Provider/setUserNfts', {address: userAddress, nfts: nfts});
+}
+
 export const Provider = {
   namespaced: true,
   state: {
@@ -110,6 +163,8 @@ export const Provider = {
     provider: null,
     account: null,
     venomBalance: '0',
+    userNftsLoadingStarted: false,
+    userNfts: [],
     // subscriber for new events
     providerId: 0, // For concurrency control, in case provider changed.
     collectionContract: null,
@@ -155,6 +210,10 @@ export const Provider = {
       state.collectionContract = collectionContract;
       state.collectionCachedState = collectionCachedState;
       state.collectionSubscriber = collectionSubscriber;
+      if (!state.userNftsLoadingStarted && state.account) {
+        state.userNftsLoadingStarted = true;
+        fetchUserNfts(state.account, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
+      }
       loadTiles(this.commit, collectionContract, collectionCachedState, providerId);
     },
     setTiles(state, {providerId, tiles, tilesByIndex}) {
@@ -177,17 +236,24 @@ export const Provider = {
       tiles.push(tile);
       state.tilesByIndex[tile.index] = tile;
       state.tiles = tiles;
-
       delete state.nftDataById[tile.nftId]
     },
     setConnectedAccount(state, address) {
       state.account = address;
       state.venomBalance = '0';
-      address && state.provider.getBalance(address).then(function(balance) {
-        if (balance) {
-          state.venomBalance = (balance / 1_000_000_000).toFixed(1)
-        }
-      })
+      state.userNfts = [];
+      address && fetchAccountBalance(address, state.provider, this.commit);
+      if (address && state.collectionCachedState) {
+        state.userNftsLoadingStarted = true;
+        fetchUserNfts(address, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
+      } else {
+        state.userNftsLoadingStarted = false;
+      }
+    },
+    setAccountBalance(state, {address, balance}) {
+      if (state.account.toString() === address.toString()) {
+        state.venomBalance = balance;
+      }
     },
     setNftDataLoadingInProgress(state, nftId) {
       let nftDataById = state.nftDataById;
@@ -198,6 +264,21 @@ export const Provider = {
           description: ''
         }
         state.nftDataById = nftDataById;
+      }
+    },
+    setUserNfts(state, {address, nfts}) {
+      if (state.account && state.account.equals(address)) {
+        state.userNfts = nfts;
+      }
+    },
+    setUserNftIsNotLoaded(state) {
+      console.log('setUserNftIsNotLoaded')
+      if (state.account && state.collectionContract) {
+        state.userNftsLoadingStarted = true;
+        // just reload
+        fetchUserNfts(state.account, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
+      } else {
+        state.userNftsLoadingStarted = false;
       }
     },
     setNftData(state, {id, description, url}) {
@@ -345,6 +426,28 @@ export const Provider = {
         }).catch(reject)
       })
     },
+    redrawNft({state, commit}, {id, x, y, width, height, tiles, description, url}) {
+      return state.collectionContract.methods.nftAddress({answerId: 0, id: id}).call({responsible: true, cachedState: state.collectionCachedState}).then(function(answer) {
+        const nftContract = new state.provider.Contract(NftAbi, answer.nft);
+        return nftContract.methods.colorify({
+          "tilesToColorify": tiles,
+          "description": description || '',
+          "url": url || '',
+          "sendGasBack": state.account
+        }).send({
+          from: state.account,
+          amount: (width * height / 100 * 400_000_000 + 3_000_000_000).toString(),
+        }).then(function(firstTx) {
+          return new Promise(async(resolve, reject) => {
+            const subscriber = new state.provider.Subscriber();
+            await subscriber.trace(firstTx).tap(tx_in_tree => {
+              // nothing
+            }).finished();
+            resolve();
+          })
+        })
+      })
+    },
     fetchNftData({state, commit}, {id}) {
       if (!state.nftDataById[id] && state.provider && state.collectionCachedState) {
         commit('setNftDataLoadingInProgress', id);
@@ -363,8 +466,7 @@ export const Provider = {
           })
           // console.log(answer);
         }).then(nftAnswer => {
-          let {value0: description, value1: url} = nftAnswer;
-          commit('setNftData', {id, description, url})
+          commit('setNftData', {id, description: nftAnswer.description, url: nftAnswer.url})
         })
       }
     }

@@ -1,7 +1,7 @@
 <template>
   <div class="header-wrapper">
     <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
-    <a href="" class="secondary-button nft-button">My NFT</a>
+    <a href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
     <div class="description">
       <span>$1 per pixel</span>
       <div class="dot"></div>
@@ -27,6 +27,7 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
+  props: ['openMyNfts'],
   computed: {
     address() {
       let str = this.$store.state.Provider.account._address;
@@ -63,6 +64,7 @@ export default {
   background: #7000FF;
   z-index: 8;
   color: #CCFF00;
+  border-bottom: solid 2px #CCFF00;
 }
 .logo {
     height: 70px;

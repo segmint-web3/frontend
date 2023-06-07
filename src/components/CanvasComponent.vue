@@ -1,6 +1,6 @@
 <template>
   <div class="wrapper">
-    <claim-modal :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onModalSuccess"/>
+    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onModalSuccess"/>
     <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}

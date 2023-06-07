@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    <HeaderComponent />
+    <MyNftComponent v-if='myNftOpened' :onClose='closeMyNfts'/>
+    <HeaderComponent :openMyNfts='openMyNfts' />
     <CanvasComponent />
   </div>
 </template>
@@ -8,15 +9,30 @@
 <script>
 import HeaderComponent from './components/HeaderComponent.vue'
 import CanvasComponent from './components/CanvasComponent.vue'
+import MyNftComponent from "@/components/MyNftComponent.vue";
 
 export default {
   name: 'App',
   components: {
     HeaderComponent,
-    CanvasComponent
+    CanvasComponent,
+    MyNftComponent
+  },
+  data() {
+    return {
+      myNftOpened: false,
+    }
   },
   mounted() {
     this.$store.dispatch('Provider/init', {});
+  },
+  methods: {
+    closeMyNfts(){
+      this.myNftOpened = false;
+    },
+    openMyNfts(){
+      this.myNftOpened = true;
+    },
   }
 }
 </script>
