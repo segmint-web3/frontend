@@ -47,6 +47,7 @@ html, body {
   padding: 0;
   margin: 0;
   background-color: #3B0087;
+  box-sizing: border-box;
 }
 #app {
   font-family: "ChakraPetch", Helvetica, Arial;

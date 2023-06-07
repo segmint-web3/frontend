@@ -1,34 +1,43 @@
 <template>
   <modal class="claim-modal" :name="$props.name" height="auto" @before-close="beforeClose" @before-open='beforeOpen'>
     <div class="flex modal-content">
-      <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
-      <div class="instructions">
-          Please upload a picture {{this.width}}x{{this.height}}px.
+      <div class="claim-modal-header">
+        {{ headerText }}
+        <img :src="`${publicPath}icons/close.svg`" alt="close" class="close" @click="$emit('close')">
       </div>
-      <label for="assetsFieldHandle" class="file-upload">
-        <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
-             @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
-        <button class="transparent-button">Select Image</button>
-      </label>
-      <div :style="canvasContainerStyles" class="canvasContainer">
-        <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
-      </div>
-      <form>
-        <div class="flex title">
-          <label for="title">Title:</label>
-          <input v-model="title" type="text" id="title" class="input">
+      <div class=" flex claim-modal-content">
+        <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
+        <div v-if="!canBeClaimed" class="instructions">
+            Please upload a picture {{this.width}}x{{this.height}}px.
         </div>
-        <div class="flex link">
-          <label for="link">Link:</label>
-          <input v-model="link" type="text" id="link" class="input">
+        <div v-else class="instructions">
+            You have selected a {{this.width}}x{{this.height}}px segment
         </div>
-        <button v-if="canBeClaimed" class="primary-button" v-on:click="claim">
-          {{$props.id ? 'Edit segment' : 'Mint segment'}}
-        </button>
-      </form>
-      <div v-if='claimInProgress' class="claim-in-progress">
-        <span>{{$props.id ? 'Edit in progress' : 'Claim in progress'}}</span>
-        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        <label for="assetsFieldHandle" class="file-upload">
+          <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
+              @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
+          <button class="transparent-button">Select Image</button>
+        </label>
+        <div v-show="canBeClaimed" :style="canvasContainerStyles" class="canvasContainer">
+          <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
+        </div>
+        <form v-if="canBeClaimed">
+          <div class="flex title">
+            <label for="title">Title:</label>
+            <input v-model="title" type="text" id="title" class="input">
+          </div>
+          <div class="flex link">
+            <label for="link">Link:</label>
+            <input v-model="link" type="text" id="link" class="input">
+          </div>
+          <button class="primary-button" v-on:click="claim">
+            {{$props.id ? 'Edit segment' : 'Mint segment'}}
+          </button>
+        </form>
+        <div v-if='claimInProgress' class="claim-in-progress">
+          <span>{{$props.id ? 'Edit in progress' : 'Claim in progress'}}</span>
+          <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        </div>
       </div>
     </div>
   </modal>
@@ -44,7 +53,8 @@ export default {
       coloredTiles: [],
       claimInProgress: false,
       title: '',
-      link: ''
+      link: '',
+      publicPath: process.env.BASE_URL
     }
   },
   props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess'],
@@ -66,8 +76,12 @@ export default {
         height: `${this.$props.height * 4}px`
       }
     },
+    headerText(){
+      if(this.canBeClaimed) {
+        return "Minting";
+      } else return "Choosing a picture";
+    }
   },
-
   methods: {
     onChange() {
       // todo parse image
@@ -157,21 +171,43 @@ canvas {
 .claim-modal {
   background-color: rgb(59 0 135 / 50%);
 }
+.claim-modal-header {
+  width: 100%;
+  padding: 10px;
+  text-align: center;
+  background: #7000FF;
+  color: var(--primary);
+  font-family: "ChakraPetch", Helvetica, Arial;
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+}
+.claim-modal-header img.close {
+  position: absolute;
+  top: 18px;
+  right: 10px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
 .modal-content {
   position: fixed;
   top: 15%;
   left: calc(50% - 166px);
   flex-direction: column;
-  min-height: 300px;
   min-width: 300px;
-  padding: 20px;
   background-color: #21004B;
   border: 10px solid #7000FF;
+  border-top: 0;
   color: #CCFF00;
 }
-
+.claim-modal-content {
+  flex-direction: column;
+  padding: 20px;
+}
 .instructions {
-  margin: 20px;
+  font-weight: 700;
+  margin: 0 20px 20px;
 }
 .file-upload {
   position: relative;
@@ -198,6 +234,7 @@ form label {
 form button {
   width: 200px;
   align-self: center;
+  margin-top: 20px;
 }
 .title, .link {
   margin-bottom: 10px;

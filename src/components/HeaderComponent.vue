@@ -1,7 +1,9 @@
 <template>
   <div class="header-wrapper">
-    <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
-    <a href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
+    <div class="flex">
+      <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
+      <a href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
+    </div>
     <div class="description">
       <span>$1 per pixel</span>
       <div class="dot"></div>
@@ -10,7 +12,7 @@
     <div v-if="!$store.state.Provider.account" class="wallet-connect">
       <button class="primary-button connect" @click="connect">Connect wallet</button>
     </div>
-    <div v-else class="wallet-info">
+    <div v-else class="flex wallet-info">
       <div class="info">
         <div class="address">{{ address }}</div>
         <div class="coins">{{ balance }} VENOM</div>
@@ -53,18 +55,25 @@ export default {
 <style>
 .header-wrapper {
   position: fixed;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
   top: 0;
   left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
   max-height: 100px;
+  padding: 10px 150px;
+  box-sizing: border-box;
   background: #7000FF;
   z-index: 8;
   color: #CCFF00;
   border-bottom: solid 2px #CCFF00;
+}
+
+@media screen and (max-width: 1280px){
+  .header-wrapper {
+    padding: 10px 50px;
+  }
 }
 .logo {
     height: 70px;
@@ -93,9 +102,6 @@ export default {
   height: 30px;
   margin-left: 10px;
   cursor: pointer;
-}
-.wallet-info {
-  display: flex;
 }
 .address {
   font-weight: 700;
