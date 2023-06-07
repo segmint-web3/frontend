@@ -220,7 +220,7 @@ export default {
       }
     },
     onMouseDown(event) {
-      if (this.isMobile)
+      if (this.isMobile || !this.collectionLoaded)
         return;
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
       let xPos = Math.floor((event.clientX - canvasRect.left)/10)*10;
@@ -289,10 +289,10 @@ export default {
       }
     },
     onMouseUp() {
-      if (this.isMobile)
+      if (this.isMobile || !this.collectionLoaded)
         return
       this.selectionInProcess = false;
-      if (this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
+      if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
         // go by link
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
         if (nft) {
@@ -315,7 +315,7 @@ export default {
     },
     click(event) {
       // Need to test on mobile
-      if (!this.isMobile) {
+      if (!this.isMobile || !this.collectionLoaded) {
         return;
       }
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
