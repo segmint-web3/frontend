@@ -109,6 +109,7 @@ export const Provider = {
     venomConnect: null,
     provider: null,
     account: null,
+    venomBalance: '0',
     // subscriber for new events
     providerId: 0, // For concurrency control, in case provider changed.
     collectionContract: null,
@@ -181,6 +182,12 @@ export const Provider = {
     },
     setConnectedAccount(state, address) {
       state.account = address;
+      state.venomBalance = '0';
+      address && state.provider.getBalance(address).then(function(balance) {
+        if (balance) {
+          state.venomBalance = (balance / 1_000_000_000).toFixed(1)
+        }
+      })
     },
     setNftDataLoadingInProgress(state, nftId) {
       let nftDataById = state.nftDataById;

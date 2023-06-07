@@ -13,7 +13,7 @@
     <div v-else class="wallet-info">
       <div class="info">
         <div class="address">{{ address }}</div>
-        <div class="coins">10 VENOM</div>
+        <div class="coins">{{ balance }} VENOM</div>
       </div>
       <img :src="`${publicPath}icons/exit.svg`" alt="exit" class="exit" @click="disconnect">
     </div>
@@ -31,6 +31,9 @@ export default {
     address() {
       let str = this.$store.state.Provider.account._address;
       return str.slice(0, 7) + '...' + str.slice(-4);
+    },
+    balance() {
+      return this.$store.state.Provider.venomBalance;
     }
   },
   mounted(){
