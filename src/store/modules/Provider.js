@@ -31,7 +31,7 @@ async function providerChanged(provider, providerId, commit) {
   const collectionContract = new provider.Contract(CollectionAbi, CollectionAddress);
   const {state: collectionCachedState} = await collectionContract.getFullState();
 
-  console.log('state got')
+  console.log('state got');
   const collectionSubscriber = new provider.Subscriber();
   // ug
   let waitToColorify = [];
@@ -136,6 +136,7 @@ async function fetchUserNfts(userAddress, provider, collectionContract, collecti
           const {nft: expectedNftAddress} = await collectionContract.methods.nftAddress({answerId: 0, id: nftInfo.id}).call({responsible: true, cachedState: collectionCachedState})
           if (expectedNftAddress.equals(nftAddress)) {
             nfts.push({
+              address: nftAddress,
               id: nftInfo.id,
               owner: nftInfo.owner,
               description: nftInfo.description,

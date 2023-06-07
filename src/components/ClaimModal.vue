@@ -26,6 +26,10 @@
           {{$props.id ? 'Edit segment' : 'Mint segment'}}
         </button>
       </form>
+      <div v-if='claimInProgress' class="claim-in-progress">
+        <span>{{$props.id ? 'Edit in progress' : 'Claim in progress'}}</span>
+        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+      </div>
     </div>
   </modal>
 </template>
@@ -155,7 +159,7 @@ canvas {
 }
 .modal-content {
   position: fixed;
-  top: 10%;
+  top: 15%;
   left: calc(50% - 166px);
   flex-direction: column;
   min-height: 300px;
@@ -197,5 +201,60 @@ form button {
 }
 .title, .link {
   margin-bottom: 10px;
+}
+.claim-in-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: #21004B;
+  color: var(--primary);
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  flex-direction: column;
+  align-items: center;
+  font-size: 40px;
+}
+.claim-in-progress span {
+  display: block;
+  width: 100%;
+}
+.lds-ring {
+  display: inline-block;
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+.lds-ring div {
+  box-sizing: border-box;
+  display: block;
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border: 8px solid var(--primary);
+  border-radius: 50%;
+  animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  border-color: var(--primary) transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+  animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+  animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
