@@ -45,7 +45,6 @@ export default {
     }
   },
   mounted(){
-    console.log(this.$store.state.Provider)
   },
   methods: {
     onEdit(id, x, y, width, height) {

@@ -175,7 +175,6 @@ export default {
     //   this.redraw(this.$store.state.Provider.tiles);
     // }
     this.$store.subscribe((mutation) => {
-      console.log(mutation, 'mutation')
       if (mutation.type === 'Provider/setTiles') {
         this.redraw(mutation.payload.tiles);
       } else if (mutation.type === 'Provider/setTile') {
@@ -395,7 +394,9 @@ export default {
       }
     },
     claim() {
+      console.log('claim', this.$store.state.Provider.account);
       if (this.$store.state.Provider.account) {
+        console.log('open-modal')
         this.$modal.show('claim-modal');
       } else {
         this.$store.dispatch('Provider/connect');
