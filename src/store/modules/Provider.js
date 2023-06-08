@@ -10,7 +10,7 @@ import bigInt from "big-integer";
 import {BN} from "bn.js";
 import Vue from "vue";
 
-const CollectionAddress = new Address("0:d3712cae0163630873fcfa00d6f84159780a5bfe825ee8d932523632b4ba5cb7");
+const CollectionAddress = new Address("0:a775bd1735017fd401ba1b1ee76936f7ee6b356b702a1f41b55f87ad826c5532");
 
 const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
@@ -364,16 +364,17 @@ export const Provider = {
         },
       });
       commit('setVenomConnect', venomConnect);
-
       // Get standalone provider or  already connected wallet
       venomConnect.checkAuth().then(async (provider) => {
+        await provider?.ensureInitialized();
         const currentProviderState = await provider?.getProviderState();
-        if (currentProviderState?.permissions?.accountInteraction) {
+        console.log(provider);
+        if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
           commit('setProvider', provider);
           commit('setConnectedAccount', currentProviderState?.permissions?.accountInteraction?.address);
         } else {
-          let standAloneProvider = await venomConnect.getStandalone();
           console.log('Standalone provider');
+          let standAloneProvider = await venomConnect.getStandalone();
           commit('setProvider', standAloneProvider);
         }
       });
