@@ -370,6 +370,7 @@ export const Provider = {
         const currentProviderState = await provider?.getProviderState();
         console.log(provider);
         if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
+          console.log('Not standalone provider');
           commit('setProvider', provider);
           commit('setConnectedAccount', currentProviderState?.permissions?.accountInteraction?.address);
         } else {
