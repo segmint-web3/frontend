@@ -12,7 +12,7 @@
         </div>
       </div>
     </div>
-    <claim-modal name='edit-modal' :id='editNftId' :width="editNftWidth" :height="editNftHeight" :x="editNftX" :y="editNftY" :onsuccess="onModalSuccess"/>
+    <claim-modal name='edit-modal' :id='editNftId' :width="editNftWidth" :height="editNftHeight" :x="editNftX" :y="editNftY" :onsuccess="onModalSuccess" @close="closEditModal"/>
   </div>
 </template>
 <script>
@@ -59,6 +59,10 @@ export default {
       this.editNftId = null;
       this.$modal.hide('edit-modal');
       this.$props.onClose();
+    },
+    closEditModal() {
+      this.editNftId = null;
+      this.$modal.hide('edit-modal');
     }
   }
 }

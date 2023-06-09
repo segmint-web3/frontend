@@ -57,7 +57,7 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
-  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess'],
+  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onclose'],
   computed: {
     canBeClaimed: function() {
       return this.coloredTiles.length > 0;
@@ -142,7 +142,8 @@ export default {
         promise.then(() => {
           this.claimInProgress = false;
           this.$props.onsuccess();
-        }).catch(() => {
+        }).catch((err) => {
+          console.log(err);
           this.claimInProgress = false;
         })
       }
@@ -173,7 +174,7 @@ canvas {
 }
 .claim-modal-header {
   width: 100%;
-  padding: 10px;
+  padding: 0 10px 10px 10px;
   text-align: center;
   background: #7000FF;
   color: var(--primary);
@@ -184,7 +185,7 @@ canvas {
 }
 .claim-modal-header img.close {
   position: absolute;
-  top: 18px;
+  top: 8px;
   right: 10px;
   width: 15px;
   height: 15px;
@@ -198,7 +199,6 @@ canvas {
   min-width: 300px;
   background-color: #21004B;
   border: 10px solid #7000FF;
-  border-top: 0;
   color: #CCFF00;
 }
 .claim-modal-content {

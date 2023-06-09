@@ -1,6 +1,7 @@
 <template>
   <div class="wrapper">
-    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onModalSuccess" @close="closeModal"/>
+    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" @close="closeClaimModal"/>
+    <mint-tokens-modal name='mint-tokens-modal' :amount="selectedPriceUSD" :onsuccess="onMintTokenModalSuccess" @close="closeMintTokensModal"/>
     <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}
@@ -24,10 +25,11 @@
 
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
+import MintTokensModal from '@/components/MintTokensModal.vue'
 
 export default {
   name: 'CanvasComponent',
-  components: {ClaimModal},
+  components: {ClaimModal, MintTokensModal},
   props: {},
   data() {
     return {
@@ -81,6 +83,9 @@ export default {
     },
     selectedHeight: function () {
       return this.selectionEndY - this.selectionStartY + 10
+    },
+    selectedPriceUSD: function () {
+      return this.selectedWidth * this.selectedHeight * 1_000_000_000;
     },
     highLightPopupStyles: function() {
       // When we hover some nft, we show popup with text
@@ -394,21 +399,32 @@ export default {
       }
     },
     claim() {
-      console.log('claim', this.$store.state.Provider.account);
-      if (this.$store.state.Provider.account) {
-        console.log('open-modal')
-        this.$modal.show('claim-modal');
+      if (this.selectedPriceUSD > this.$store.state.Provider.tokenWalletBalance) {
+        this.$modal.show('mint-tokens-modal');
       } else {
-        this.$store.dispatch('Provider/connect');
+        if (this.$store.state.Provider.account) {
+          console.log('open-modal')
+          this.$modal.show('claim-modal');
+        } else {
+          this.$store.dispatch('Provider/connect');
+        }
       }
     },
-    onModalSuccess() {
+    onClaimModalSuccess() {
       this.clearSelection();
       this.$modal.hide('claim-modal');
     },
-    closeModal(){
+    closeClaimModal(){
+      console.log('closeClaimModal');
       this.$modal.hide('claim-modal');
-    }
+    },
+    onMintTokenModalSuccess() {
+      this.$modal.hide('mint-tokens-modal');
+      this.$modal.show('claim-modal');
+    },
+    closeMintTokensModal(){
+      this.$modal.hide('mint-tokens-modal');
+    },
   }
 }
 </script>
