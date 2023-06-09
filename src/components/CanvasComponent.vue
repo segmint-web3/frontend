@@ -177,7 +177,6 @@ export default {
   mounted() {
     this.ctx = this.$refs.canvas.getContext('2d');
     this.imageData = this.ctx.createImageData(10, 10);
-    // console.log(this.$store.state.Provider.tiles, 'tiles')
     // if (this.$store.state.Provider.tiles.length > 0) {
     //   this.redraw(this.$store.state.Provider.tiles);
     // }
@@ -208,12 +207,6 @@ export default {
         this.ctx.putImageData(this.imageData, tile.x, tile.y);
       }
       this.collectionLoaded = true;
-      // if (this.selectionStartX !== null && this.selectionStartY !== null && this.selectionEndX !== null && this.selectionEndY !== null) {
-      //   this.ctx.beginPath();
-      //   this.ctx.fillStyle = "red";
-      //   this.ctx.rect(this.selectionStartX, this.selectionStartY, this.selectionEndX + 10 - this.selectionStartX, this.selectionEndY + 10 - this.selectionStartY);
-      //   this.ctx.fill();
-      // }
     },
     styleForBadTile: function (tile) {
       // Style for one tile (10x10) in case
@@ -301,11 +294,10 @@ export default {
         return
       this.selectionInProcess = false;
       if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
-        // go by link
+
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
         if (nft && nft.url) {
-          // TODO validate url
-          window.location = nft.url;
+          window.open(nft.url, '_blank');
         }
 
       }
@@ -468,8 +460,8 @@ canvas {
 .hover-popup {
   color: white;
   position: absolute;
-  border-radius: 6px;
   font-weight: bold;
-  background-color: rgba(0,0,0,0.6);
+  padding: 10px;
+  background-color: rgba(0,0,0,0.8);
 }
 </style>

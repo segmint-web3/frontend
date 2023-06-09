@@ -2,7 +2,7 @@
   <div class="header-wrapper">
     <div class="flex">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
-      <a href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
+      <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
     </div>
     <div class="description">
       <span>$1 per pixel</span>

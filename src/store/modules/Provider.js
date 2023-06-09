@@ -51,6 +51,8 @@ async function providerChanged(provider, providerId, commit) {
   let waitToColorify = [];
   collectionSubscriber.transactions(collectionContract.address).on(async (data) => {
     console.log('We got a new transaction on collection address', data);
+    commit('Provider/setCollection', {providerId, collectionContract, collectionCachedState, collectionSubscriber});
+    commit('Provider/setUserNftIsNotLoaded');
     // TODO parse events
     for (let tx of data.transactions) {
       let events = await collectionContract.decodeTransactionEvents({transaction: tx});
@@ -125,6 +127,7 @@ async function loadTiles(commit, collectionContract, cachedState, providerId) {
 }
 
 async function fetchAccountBalance(address, provider, commit) {
+  console.log('fetchAccountBalance')
   provider.getBalance(address).then(function(balance) {
     if (balance) {
       commit('Provider/setAccountBalance', {address, balance: (balance / 1_000_000_000).toFixed(1)});
@@ -258,6 +261,7 @@ export const Provider = {
       providerChanged(provider, state.providerId, this.commit);
     },
     setCollection(state, {providerId, collectionContract, collectionCachedState, collectionSubscriber}) {
+      console.log('setCollection')
       if (state.providerId !== providerId) {
         collectionSubscriber.unsubscribe();
         return;
@@ -270,10 +274,9 @@ export const Provider = {
         fetchUserNfts(state.account, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
       }
       loadTiles(this.commit, collectionContract, collectionCachedState, providerId);
+      fetchAccountBalance(state.account, state.provider, this.commit);
     },
     setTiles(state, {providerId, tiles, tilesByIndex}) {
-      console.log('setTile', tiles);
-
       if (state.providerId !== providerId)
         return;
 
@@ -369,7 +372,7 @@ export const Provider = {
     }
   },
   actions:  {
-    init ({ state, commit }) {
+    init({ state, commit }) {
       if (state.venomConnect)
         return;
       const venomConnect = new VenomConnect({

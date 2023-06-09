@@ -95,7 +95,7 @@ export default {
       const width = this.$props.width;
       const height = this.$props.height;
 
-      ctx.fillStyle = 'transparent';
+      ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, width, height);
 
       this.coloredTiles = [];

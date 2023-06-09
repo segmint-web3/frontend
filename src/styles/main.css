@@ -116,3 +116,6 @@
 ::-webkit-scrollbar-thumb {
   background: #7000FF;
 }
+::-webkit-scrollbar-corner {
+  background: rgba(0,0,0,0);
+}

@@ -86,6 +86,7 @@ export default {
   color: var(--primary);
   font-family: "ChakraPetch", Helvetica, Arial;
   font-size: 24px;
+  font-weight: 700;
   height: 60px;
   text-align: center;
   width: 100%;
@@ -93,7 +94,6 @@ export default {
   padding-top: 5px;
 }
 .my-nft-container {
-  padding-top: 20px;
   font-family: "ChakraPetch", Helvetica, Arial;
   flex: 1;
   width: 100%;

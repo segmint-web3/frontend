@@ -19,14 +19,12 @@
       </div>
     </div>
     <div class='nft-subinfo-container'>
-      <span>
+      <p>
         Segment size: {{this.$props.width}}x{{this.$props.height}}
-      </span>
-      <br />
-      <span>
+      </p>
+      <p>
           Floor price: {{this.floorPrice()}}$
-      </span>
-      <br />
+      </p>
     </div>
   </div>
 </template>
@@ -115,11 +113,16 @@ canvas {
   font-weight: 700;
   font-size: 20px;
   line-height: 36px;
+  text-decoration: none;
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 160px;
   display: block;
+}
+
+.nft-info-title a:hover {
+  text-decoration: underline;
 }
 
 .nft-info-button {
@@ -138,7 +141,7 @@ canvas {
   line-height: 16px;
 }
 .nft-info-button .edit-icon {
-
+  margin-left: 10px;
 }
 .nft-subinfo-container {
   text-align: left;
@@ -148,5 +151,8 @@ canvas {
   line-height: 16px;
   letter-spacing: 0em;
   margin: 0px 10px;
+}
+.nft-subinfo-container p {
+  margin: 5px 0;
 }
 </style>
