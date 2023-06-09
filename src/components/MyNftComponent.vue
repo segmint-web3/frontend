@@ -8,7 +8,7 @@
       </div>
       <div class='my-nft-container'>
         <div v-for="nft in nfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :id='nft.id' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+          <OneNftComponent :address='nft.address' :id='nft.id' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
       </div>
     </div>
