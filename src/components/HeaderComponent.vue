@@ -39,8 +39,6 @@ export default {
       return this.$store.state.Provider.venomBalance;
     }
   },
-  mounted(){
-  },
   methods: {
     connect(){
       this.$store.dispatch('Provider/connect');
@@ -83,7 +81,7 @@ export default {
   padding: 5px 10px;
 }
 
-.description {
+.header-wrapper .description {
   display: flex;
   align-items: center;
   font-size: 20px;

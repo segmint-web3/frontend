@@ -24,11 +24,12 @@
 
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
+// import zoomMixin from "@/mixins/zoom"
 
 export default {
   name: 'CanvasComponent',
   components: {ClaimModal},
-  props: {},
+  // mixins: [zoomMixin],
   data() {
     return {
       ctx: null,

@@ -22,14 +22,15 @@
           <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
         </div>
         <form v-if="canBeClaimed">
-          <div class="flex title">
-            <label for="title">Title:</label>
-            <input v-model="title" type="text" id="title" class="input">
+          <div class="flex description">
+            <label for="description">Title:</label>
+            <input v-model="description" type="text" id="description" class="input" maxlength="1000">
           </div>
           <div class="flex link">
             <label for="link">Link:</label>
-            <input v-model="link" type="text" id="link" class="input">
+            <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)">
           </div>
+          <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
             {{$props.id ? 'Edit segment' : 'Mint segment'}}
           </button>
@@ -52,9 +53,10 @@ export default {
     return {
       coloredTiles: [],
       claimInProgress: false,
-      title: '',
+      description: '',
       link: '',
-      publicPath: process.env.BASE_URL
+      publicPath: process.env.BASE_URL,
+      linkValid: true
     }
   },
   props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess'],
@@ -91,7 +93,7 @@ export default {
       const width = this.$props.width;
       const height = this.$props.height;
 
-      ctx.fillStyle = 'black';
+      ctx.fillStyle = 'transparent';
       ctx.fillRect(0, 0, width, height);
 
       this.coloredTiles = [];
@@ -127,24 +129,28 @@ export default {
       if (this.claimInProgress)
         return
 
-      // TODO show alert if description/title is longer then 2000 symbols.
-      const description = this.title.trim().slice(0, 2000);
-      const url = this.link.trim().slice(0, 2000);
-
-      let promise;
-      if (this.$props.id) {
-        promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+      const description = this.description;
+      const url = this.link;
+      const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+      if(urlPattern.test(url)) {
+        this.linkValid = true;
+        let promise;
+        if (this.$props.id) {
+          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+        } else {
+          promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+        }
+        if (promise) {
+          this.claimInProgress = true;
+          promise.then(() => {
+            this.claimInProgress = false;
+            this.$props.onsuccess();
+          }).catch(() => {
+            this.claimInProgress = false;
+          })
+        } 
       } else {
-        promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
-      }
-      if (promise) {
-        this.claimInProgress = true;
-        promise.then(() => {
-          this.claimInProgress = false;
-          this.$props.onsuccess();
-        }).catch(() => {
-          this.claimInProgress = false;
-        })
+        this.linkValid = false;
       }
     },
     beforeClose(event) {
@@ -152,9 +158,12 @@ export default {
         event.cancel();
     },
     beforeOpen() {
-      this.title = '';
+      this.description = '';
       this.link = '';
       this.coloredTiles = [];
+    },
+    inputLink(){
+      this.linkValid = true;
     }
   }
 }
@@ -236,7 +245,7 @@ form button {
   align-self: center;
   margin-top: 20px;
 }
-.title, .link {
+.description, .link {
   margin-bottom: 10px;
 }
 .claim-in-progress {
@@ -293,5 +302,9 @@ form button {
   100% {
     transform: rotate(360deg);
   }
+}
+
+.error {
+  color: red;
 }
 </style>

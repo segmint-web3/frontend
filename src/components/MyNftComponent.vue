@@ -97,8 +97,18 @@ export default {
   border: solid 8px #7000FF;
   background: #21004B;
   box-sizing: border-box;
-  overflow: scroll;
+  overflow-y: scroll;
 }
+.my-nft-container::-webkit-scrollbar {
+  width: 10px;
+}
+.my-nft-container::-webkit-scrollbar-track {
+  background: #7000FF;
+}
+.my-nft-container::-webkit-scrollbar-thumb {
+  background: #3B0087;
+}
+
 .my-nft {
   padding: 10px;
   width: 100%;
