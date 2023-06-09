@@ -1,6 +1,7 @@
 <template>
   <div class="wrapper">
-    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onModalSuccess" @close="closeModal"/>
+    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" @close="closeClaimModal"/>
+    <mint-tokens-modal name='mint-tokens-modal' :amount="selectedPriceUSD" :onsuccess="onMintTokenModalSuccess" @close="closeMintTokensModal"/>
     <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}
@@ -24,12 +25,14 @@
 
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
+import MintTokensModal from '@/components/MintTokensModal.vue'
 // import zoomMixin from "@/mixins/zoom"
 
 export default {
   name: 'CanvasComponent',
-  components: {ClaimModal},
+  components: {ClaimModal, MintTokensModal},
   // mixins: [zoomMixin],
+  props: {},
   data() {
     return {
       ctx: null,
@@ -82,6 +85,9 @@ export default {
     },
     selectedHeight: function () {
       return this.selectionEndY - this.selectionStartY + 10
+    },
+    selectedPriceUSD: function () {
+      return this.selectedWidth * this.selectedHeight * 1_000_000_000;
     },
     highLightPopupStyles: function() {
       // When we hover some nft, we show popup with text
@@ -297,7 +303,7 @@ export default {
       if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
         // go by link
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
-        if (nft) {
+        if (nft && nft.url) {
           // TODO validate url
           window.location = nft.url;
         }
@@ -395,21 +401,32 @@ export default {
       }
     },
     claim() {
-      console.log('claim', this.$store.state.Provider.account);
       if (this.$store.state.Provider.account) {
-        console.log('open-modal')
-        this.$modal.show('claim-modal');
+        if (this.selectedPriceUSD > this.$store.state.Provider.tokenWalletBalance) {
+          this.$modal.show('mint-tokens-modal');
+        } else {
+          console.log('open-modal')
+          this.$modal.show('claim-modal');
+        }
       } else {
         this.$store.dispatch('Provider/connect');
       }
     },
-    onModalSuccess() {
+    onClaimModalSuccess() {
       this.clearSelection();
       this.$modal.hide('claim-modal');
     },
-    closeModal(){
+    closeClaimModal(){
+      console.log('closeClaimModal');
       this.$modal.hide('claim-modal');
-    }
+    },
+    onMintTokenModalSuccess() {
+      this.$modal.hide('mint-tokens-modal');
+      this.$modal.show('claim-modal');
+    },
+    closeMintTokensModal(){
+      this.$modal.hide('mint-tokens-modal');
+    },
   }
 }
 </script>

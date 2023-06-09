@@ -3,6 +3,12 @@
     <MyNftComponent v-if='myNftOpened' :onClose='closeMyNfts'/>
     <HeaderComponent :openMyNfts='openMyNfts' />
     <CanvasComponent />
+    <div v-if='!isCollectionLoaded' class='loading-fullscreen'>
+      <div>
+        <h1>Loading collection</h1>
+        <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -21,6 +27,11 @@ export default {
   data() {
     return {
       myNftOpened: false,
+    }
+  },
+  computed: {
+    isCollectionLoaded() {
+      return this.$store.state.Provider.collectionLoaded;
     }
   },
   mounted() {
@@ -51,5 +62,20 @@ html, body {
 }
 #app {
   font-family: "ChakraPetch", Helvetica, Arial;
+}
+.loading-fullscreen {
+  z-index: 1000;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: #3B0087;
+  color: var(--primary);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  text-align: center;
+  align-items: center;
 }
 </style>

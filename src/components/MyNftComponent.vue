@@ -8,11 +8,11 @@
       </div>
       <div class='my-nft-container'>
         <div v-for="nft in nfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :id='nft.id' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+          <OneNftComponent :address='nft.address' :id='nft.id' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
       </div>
     </div>
-    <claim-modal name='edit-modal' :id='editNftId' :width="editNftWidth" :height="editNftHeight" :x="editNftX" :y="editNftY" :onsuccess="onModalSuccess"/>
+    <claim-modal name='edit-modal' :id='editNftId' :width="editNftWidth" :height="editNftHeight" :x="editNftX" :y="editNftY" :onsuccess="onModalSuccess" @close="closEditModal"/>
   </div>
 </template>
 <script>
@@ -59,6 +59,10 @@ export default {
       this.editNftId = null;
       this.$modal.hide('edit-modal');
       this.$props.onClose();
+    },
+    closEditModal() {
+      this.editNftId = null;
+      this.$modal.hide('edit-modal');
     }
   }
 }
@@ -86,6 +90,7 @@ export default {
   text-align: center;
   width: 100%;
   flex: 0;
+  padding-top: 5px;
 }
 .my-nft-container {
   padding-top: 20px;
@@ -99,15 +104,7 @@ export default {
   box-sizing: border-box;
   overflow-y: scroll;
 }
-.my-nft-container::-webkit-scrollbar {
-  width: 10px;
-}
-.my-nft-container::-webkit-scrollbar-track {
-  background: #7000FF;
-}
-.my-nft-container::-webkit-scrollbar-thumb {
-  background: #3B0087;
-}
+
 
 .my-nft {
   padding: 10px;
@@ -119,8 +116,8 @@ export default {
   width: 24px;
   height: 24px;
   position: absolute;
-  right: 5px;
-  top: 3px;
+  right: 13px;
+  top: 8px;
   cursor: pointer;
 }
 .full-screen-popup {

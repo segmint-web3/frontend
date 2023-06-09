@@ -5,21 +5,35 @@ import { EverscaleStandaloneClient } from "everscale-standalone-client";
 import CollectionAbi from "./abi/SegmintCollection.abi.json";
 import NftAbi from "./abi/SegmintNft.abi.json";
 import IndexAbi from "./abi/Index.abi.json";
+import TokenRootAbi from "./abi/TokenRootUpgradeable.abi.json";
+import TokenWalletAbi from "./abi/TokenWalletUpgradeable.abi.json";
+import ProxyOwnerAbi from "./abi/ProxyOwner.abi.json";
+
 import {covertTileColorToPixels} from "@/utils/pixels";
-import bigInt from "big-integer";
 import {BN} from "bn.js";
 import Vue from "vue";
 
-const CollectionAddress = new Address("0:a775bd1735017fd401ba1b1ee76936f7ee6b356b702a1f41b55f87ad826c5532");
+const CollectionAddress = new Address("0:39e56510acc6bcdb694293fee3335da1fbbfae6fe661e6485bf2ece610341f5e");
+const TokenRootAddress = new Address("0:431f19f8b5c48fba2368e995bd18772e20055900ae1872093fd4c7d563db1919");
+const ProxyOwnerAddress = new Address("0:589f7dacb9906334a950ae15cc10bc7d55bf43fbb646c63ffd3a7a591e764bc1");
+
+const TokenRootDecimals = 9;
+const ColorifyOneTilePrice = 0.04;
+// wallet -> token 0.9, waltet -> wallet 0.5, wallet -> collection 0.5, collection -> nft(colorify) 0.5;
+const MaximumFwdFeeForBigMint = 0.9 + 0.5 + 0.5 + 0.5 + 0.5;
+// 1 for deploy nft + indexes, 0.2 for fwd fee + 1 coin reserved on collection contract
+const OneNftMintingCost = 2.2;
+// whole block, 1 for se, 0.2 for venom.
+const MaximumClaimGasPrice = 1;
 
 const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
     connection: {
-      id: 42,
-      group: "dev",
+      id: 1002,
+      group: "venom_devnet",
       type: "graphql",
       data: {
-        endpoints: ["https://devnet.evercloud.dev/ccb89dc0493c4edd9f6d7b5e27d73aef/graphql"],
+        endpoints: ["https://gql-devnet.venom.network/graphql"],
         latencyDetectionInterval: 1000,
         local: false,
       },
@@ -157,6 +171,32 @@ async function fetchUserNfts(userAddress, provider, collectionContract, collecti
   commit('Provider/setUserNfts', {address: userAddress, nfts: nfts});
 }
 
+async function fetchUserTokenWalletBalance(address, provider, commit) {
+  const tokenRootContract = new provider.Contract(TokenRootAbi, TokenRootAddress);
+  const {value0: walletAddress} = await tokenRootContract.methods.walletOf({answerId: 0, walletOwner: address}).call({responsible: true});
+
+  const tokenWalletContract = new provider.Contract(TokenWalletAbi, walletAddress);
+
+  const {state} = await tokenWalletContract.getFullState();
+  let balance = 0;
+  if (state && state.isDeployed) {
+    const {value0: walletBalance} = await tokenWalletContract.methods.balance({answerId: 0}).call({responsible: true});
+    console.log('wallet balance', walletBalance);
+    balance = parseInt(walletBalance);
+  } else {
+    console.log('wallet is not deployed');
+  }
+
+  const subscriber = new provider.Subscriber();
+  subscriber.transactions(tokenWalletContract.address).on(async (data) => {
+    // we got a new transaction
+    console.log('wallet new transaction')
+    const {value0: walletBalance} = await tokenWalletContract.methods.balance({answerId: 0}).call({responsible: true});
+    commit('Provider/setTokenWallet', {address, tokenWalletContract, balance: parseInt(walletBalance), subscriber});
+  })
+  commit('Provider/setTokenWallet', {address, tokenWalletContract, balance, subscriber});
+}
+
 export const Provider = {
   namespaced: true,
   state: {
@@ -172,6 +212,9 @@ export const Provider = {
     collectionCachedState: null,
     collectionSubscriber: null,
     collectionLoaded: false,
+    tokenWalletContract: null,
+    tokenWalletSubscriber: null,
+    tokenWalletBalance: 0,
     tiles: [],
     tilesByIndex: {},
     nftDataById: {}
@@ -187,18 +230,29 @@ export const Provider = {
       state.providerId += 1;
       state.collectionContract = null;
       state.collectionCachedState = null;
-      state.collectionLoaded = false;
-      state.tiles = [];
+      // state.collectionLoaded = false;
+      // state.tiles = [];
 
       // unsubscribe previous provider
-      state.providerSubscriber && state.providerSubscriber.unsubscribe();
-      state.providerSubscriber = null;
+      state.collectionSubscriber && state.collectionSubscriber.unsubscribe();
+      state.collectionSubscriber = null;
+
+      state.tokenWalletContract = null;
+      state.tokenWalletBalance = 0;
+      state.tokenWalletSubscriber && state.tokenWalletSubscriber.unsubscribe();
+      state.tokenWalletSubscriber = null;
 
       state.provider = provider;
       state.provider.subscribe('networkChanged').then((subscriber) => {
         subscriber.on('data', (event) => {
           // reinit tiles on network changed.
           providerChanged(provider, state.providerId, this.commit);
+          const currentProviderState = provider?.getProviderState().then((currentProviderState) => {
+            if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
+              // To reload balance and token balance
+              this.commit('Provider/setConnectedAccount', currentProviderState?.permissions?.accountInteraction.address);
+            }
+          })
         });
       })
       providerChanged(provider, state.providerId, this.commit);
@@ -240,15 +294,30 @@ export const Provider = {
       delete state.nftDataById[tile.nftId]
     },
     setConnectedAccount(state, address) {
+      console.log('setConnectedAccount');
       state.account = address;
       state.venomBalance = '0';
       state.userNfts = [];
+
+      state.tokenWalletContract = null;
+      state.tokenWalletBalance = 0;
+      state.tokenWalletSubscriber && state.tokenWalletSubscriber.unsubscribe();
+      state.tokenWalletSubscriber = null;
+
       address && fetchAccountBalance(address, state.provider, this.commit);
       if (address && state.collectionCachedState) {
         state.userNftsLoadingStarted = true;
         fetchUserNfts(address, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
       } else {
         state.userNftsLoadingStarted = false;
+      }
+      address && fetchUserTokenWalletBalance(address, state.provider, this.commit);
+    },
+    setTokenWallet(state, {address, tokenWalletContract, balance, subscriber}) {
+      if (address.equals(state.account)) {
+        state.tokenWalletContract = tokenWalletContract;
+        state.tokenWalletBalance = balance;
+        state.tokenWalletSubscriber = subscriber;
       }
     },
     setAccountBalance(state, {address, balance}) {
@@ -305,7 +374,7 @@ export const Provider = {
         return;
       const venomConnect = new VenomConnect({
         theme: 'light',
-        checkNetworkId: 42, // 42 - ever main/dev, 1000 - venom testnet, 1 - venom mainnet
+        checkNetworkId: 1002, // 42 - ever main/dev, 1002 - venom devnet, 1 - venom mainnet
         providersOptions: {
           venomwallet: {
             links: {},
@@ -400,25 +469,25 @@ export const Provider = {
         commit('setProvider', standAloneProvider);
       });
     },
-    claimTiles({state, commit}, {x, y, width, height, tiles, description, url}) {
+    mintTokens({state, commit}, {amount}) {
+      console.log('mint tokens', state.account);
       if (state.account === null) {
         // connect first
         state.venomConnect.connect();
         return;
       }
-      const promise = state.collectionContract.methods.claimTiles({
-        "pixelStartX": x,
-        "pixelStartY": y,
-        "pixelEndX": x + width,
-        "pixelEndY": y + height,
-        "tilesToColorify": tiles,
-        "description": description || 'Test description',
-        "url": url || 'https://google.com'
+      const proxyOwnerContract = new state.provider.Contract(ProxyOwnerAbi, ProxyOwnerAddress);
+      const promise = proxyOwnerContract.methods.mint({
+        amount: amount,
+        recipient: state.account,
+        deployWalletValue: '150000000',
+        remainingGasTo: state.account,
+        notify: false,
+        payload: ""
       }).send({
         from: state.account,
-        amount: (width * height / 100 * 400_000_000 + 3_000_000_000).toString(),
+        amount: '300000000',
       })
-
       return new Promise((resolve, reject) => {
         promise.then(async (firstTx) => {
           const subscriber = new state.provider.Subscriber();
@@ -429,6 +498,46 @@ export const Provider = {
         }).catch(reject)
       })
     },
+    claimTiles({state, commit}, {x, y, width, height, tiles, description, url}) {
+      if (state.account === null) {
+        // connect first
+        state.venomConnect.connect();
+        return;
+      }
+
+      let price = width * height * 1000000000;
+
+      return encodeMintPayload(state.provider,{
+        "pixelStartX": x,
+        "pixelStartY": y,
+        "pixelEndX": x + width,
+        "pixelEndY": y + height,
+        "tilesToColorify": tiles,
+        "description": description || 'Test description',
+        "url": url || 'https://google.com',
+        "coinsToRedrawOneTile" : (ColorifyOneTilePrice * 1_000_000_000).toString()
+      }).then(function(paylaod) {
+        return state.tokenWalletContract.methods.transfer({
+          amount: price,
+          recipient: CollectionAddress,
+          deployWalletValue: '0',
+          remainingGasTo: state.account,
+          notify: true,
+          payload: paylaod
+        }).send({
+          from: state.account,
+          amount: Math.floor((width / 10 * height / 10 * ColorifyOneTilePrice + OneNftMintingCost + MaximumClaimGasPrice + MaximumFwdFeeForBigMint) * 1_000_000_000).toString(),
+        })
+      }).then(firstTx => {
+        return new Promise(async (resolve, reject) => {
+          const subscriber = new state.provider.Subscriber();
+          await subscriber.trace(firstTx).tap(tx_in_tree => {
+            // nothing
+          }).finished();
+          resolve();
+        })
+      })
+    },
     redrawNft({state, commit}, {id, x, y, width, height, tiles, description, url}) {
       return state.collectionContract.methods.nftAddress({answerId: 0, id: id}).call({responsible: true, cachedState: state.collectionCachedState}).then(function(answer) {
         const nftContract = new state.provider.Contract(NftAbi, answer.nft);
@@ -436,10 +545,11 @@ export const Provider = {
           "tilesToColorify": tiles,
           "description": description || '',
           "url": url || '',
-          "sendGasBack": state.account
+          "sendGasBack": state.account,
+          "coinsToRedrawOneTile" : (ColorifyOneTilePrice * 1_000_000_000).toString()
         }).send({
           from: state.account,
-          amount: (width * height / 100 * 400_000_000 + 3_000_000_000).toString(),
+          amount: (Math.floor(width * height / 100 * ColorifyOneTilePrice * 1_000_000_000) + 1_000_000_000).toString(),
         }).then(function(firstTx) {
           return new Promise(async(resolve, reject) => {
             const subscriber = new state.provider.Subscriber();
@@ -474,4 +584,30 @@ export const Provider = {
       }
     }
   },
+}
+
+
+async function encodeMintPayload(provider, payload) {
+  return (await provider.packIntoCell({
+    data: {
+      pixelStartX: payload.pixelStartX,
+      pixelStartY: payload.pixelStartY,
+      pixelEndX: payload.pixelEndX,
+      pixelEndY: payload.pixelEndY,
+      tilesToColorify: payload.tilesToColorify,
+      description: payload.description,
+      url: payload.url,
+      coinsToRedrawOneTile: payload.coinsToRedrawOneTile
+    },
+    structure: [
+      {name: 'pixelStartX', type: 'uint10'},
+      {name: 'pixelStartY', type: 'uint10'},
+      {name: 'pixelEndX', type: 'uint10'},
+      {name: 'pixelEndY', type: 'uint10'},
+      {"components":[{"name":"r","type":"uint80[]"},{"name":"g","type":"uint80[]"},{"name":"b","type":"uint80[]"}],"name":"tilesToColorify","type":"tuple[]"},
+      {name: 'description', type: 'string'},
+      {name: 'url', type: 'string'},
+      {name: 'coinsToRedrawOneTile', type: 'uint128'}
+    ],
+  })).boc;
 }

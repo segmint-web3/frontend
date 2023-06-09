@@ -32,7 +32,7 @@
           </div>
           <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
-            {{$props.id ? 'Edit segment' : 'Mint segment'}}
+            {{$props.id ? 'Edit segment' : `Mint for $${this.width * this.height}`}}
           </button>
         </form>
         <div v-if='claimInProgress' class="claim-in-progress">
@@ -59,13 +59,13 @@ export default {
       linkValid: true
     }
   },
-  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess'],
+  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onclose'],
   computed: {
     canBeClaimed: function() {
       return this.coloredTiles.length > 0;
     },
     canvasContainerStyles: function () {
-      if (this.$props.width > 100 || this.$props.height > 100) {
+      if (this.$props.width > 60 || this.$props.height > 60) {
         return {
           margin: 'auto',
           width: `${this.$props.width * 2}px`,
@@ -79,7 +79,9 @@ export default {
       }
     },
     headerText(){
-      if(this.canBeClaimed) {
+      if (this.canBeClaimed) {
+        if (this.$props.id)
+          return 'Editing';
         return "Minting";
       } else return "Choosing a picture";
     }
@@ -140,15 +142,17 @@ export default {
         } else {
           promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
         }
+
         if (promise) {
           this.claimInProgress = true;
           promise.then(() => {
             this.claimInProgress = false;
             this.$props.onsuccess();
-          }).catch(() => {
+          }).catch((err) => {
+            console.log(err);
             this.claimInProgress = false;
           })
-        } 
+        }
       } else {
         this.linkValid = false;
       }
@@ -182,7 +186,7 @@ canvas {
 }
 .claim-modal-header {
   width: 100%;
-  padding: 10px;
+  padding: 0 10px 10px 10px;
   text-align: center;
   background: #7000FF;
   color: var(--primary);
@@ -193,7 +197,7 @@ canvas {
 }
 .claim-modal-header img.close {
   position: absolute;
-  top: 18px;
+  top: 8px;
   right: 10px;
   width: 15px;
   height: 15px;
@@ -207,7 +211,6 @@ canvas {
   min-width: 300px;
   background-color: #21004B;
   border: 10px solid #7000FF;
-  border-top: 0;
   color: #CCFF00;
 }
 .claim-modal-content {

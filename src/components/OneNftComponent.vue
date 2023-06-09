@@ -1,7 +1,9 @@
 <template>
   <div class="nft-container">
     <div :style="canvasStyles" class="canvas-container">
-      <canvas :style="canvasStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
+      <a :href="scanLink" target='_blank'>
+        <canvas :style="canvasStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
+      </a>
     </div>
     <div class='nft-info-container'>
       <div class='nft-info-title'>
@@ -38,7 +40,7 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
-  props: ['id', 'x', 'y', 'width', 'height', 'description', 'url', 'onedit'],
+  props: ['id', 'address', 'x', 'y', 'width', 'height', 'description', 'url', 'onedit'],
   computed: {
     canvasStyles: function () {
       const height = 250/this.$props.width * this.$props.height;
@@ -47,6 +49,9 @@ export default {
         width: `100%`,
         height: `${height}px`
       }
+    },
+    scanLink: function() {
+      return `https://testnet.everscan.io/accounts/${this.$props.address.toString()}`;
     }
   },
   mounted() {
