@@ -399,15 +399,15 @@ export default {
       }
     },
     claim() {
-      if (this.selectedPriceUSD > this.$store.state.Provider.tokenWalletBalance) {
-        this.$modal.show('mint-tokens-modal');
-      } else {
-        if (this.$store.state.Provider.account) {
+      if (this.$store.state.Provider.account) {
+        if (this.selectedPriceUSD > this.$store.state.Provider.tokenWalletBalance) {
+          this.$modal.show('mint-tokens-modal');
+        } else {
           console.log('open-modal')
           this.$modal.show('claim-modal');
-        } else {
-          this.$store.dispatch('Provider/connect');
         }
+      } else {
+        this.$store.dispatch('Provider/connect');
       }
     },
     onClaimModalSuccess() {

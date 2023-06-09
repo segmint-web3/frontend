@@ -31,7 +31,7 @@
             <input v-model="link" type="text" id="link" class="input">
           </div>
           <button class="primary-button" v-on:click="claim">
-            {{$props.id ? 'Edit segment' : 'Mint segment'}}
+            {{$props.id ? 'Edit segment' : `Mint for $${this.width * this.height}`}}
           </button>
         </form>
         <div v-if='claimInProgress' class="claim-in-progress">
