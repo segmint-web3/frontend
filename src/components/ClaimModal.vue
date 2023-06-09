@@ -63,7 +63,7 @@ export default {
       return this.coloredTiles.length > 0;
     },
     canvasContainerStyles: function () {
-      if (this.$props.width > 100 || this.$props.height > 100) {
+      if (this.$props.width > 60 || this.$props.height > 60) {
         return {
           margin: 'auto',
           width: `${this.$props.width * 2}px`,
@@ -77,7 +77,9 @@ export default {
       }
     },
     headerText(){
-      if(this.canBeClaimed) {
+      if (this.canBeClaimed) {
+        if (this.$props.id)
+          return 'Editing';
         return "Minting";
       } else return "Choosing a picture";
     }

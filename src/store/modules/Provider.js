@@ -13,12 +13,12 @@ import {covertTileColorToPixels} from "@/utils/pixels";
 import {BN} from "bn.js";
 import Vue from "vue";
 
-const CollectionAddress = new Address("0:25b6c155b38e2b67c4f925f48524dd983a5c79b7b74e9188b9e59d1337ea9aaf");
-const TokenRootAddress = new Address("0:56efae746bae67a82cbac28ef1b0a902b66e4a3b22adca6bdba7c5c96aae2b3f");
-const ProxyOwnerAddress = new Address("0:8e4dd7bb5277925fd141c45f81267c156c0143d5abc2a4b507364952053f7edb");
+const CollectionAddress = new Address("0:39e56510acc6bcdb694293fee3335da1fbbfae6fe661e6485bf2ece610341f5e");
+const TokenRootAddress = new Address("0:431f19f8b5c48fba2368e995bd18772e20055900ae1872093fd4c7d563db1919");
+const ProxyOwnerAddress = new Address("0:589f7dacb9906334a950ae15cc10bc7d55bf43fbb646c63ffd3a7a591e764bc1");
 
 const TokenRootDecimals = 9;
-const ColorifyOneTilePrice = 0.3;
+const ColorifyOneTilePrice = 0.04;
 // wallet -> token 0.9, waltet -> wallet 0.5, wallet -> collection 0.5, collection -> nft(colorify) 0.5;
 const MaximumFwdFeeForBigMint = 0.9 + 0.5 + 0.5 + 0.5 + 0.5;
 // 1 for deploy nft + indexes, 0.2 for fwd fee + 1 coin reserved on collection contract
@@ -29,11 +29,11 @@ const MaximumClaimGasPrice = 1;
 const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
     connection: {
-      id: 42,
+      id: 1002,
       group: "dev",
-      type: "graphql",
+      type: "jrpc",
       data: {
-        endpoints: ["https://devnet.evercloud.dev/ccb89dc0493c4edd9f6d7b5e27d73aef/graphql"],
+        endpoints: ["https://jrpc-devnet.venom.foundation/"],
         latencyDetectionInterval: 1000,
         local: false,
       },
@@ -374,7 +374,7 @@ export const Provider = {
         return;
       const venomConnect = new VenomConnect({
         theme: 'light',
-        checkNetworkId: 42, // 42 - ever main/dev, 1000 - venom testnet, 1 - venom mainnet
+        checkNetworkId: 1002, // 42 - ever main/dev, 1002 - venom devnet, 1 - venom mainnet
         providersOptions: {
           venomwallet: {
             links: {},
@@ -526,7 +526,7 @@ export const Provider = {
           payload: paylaod
         }).send({
           from: state.account,
-          amount: parseInt((width / 10 * height / 10 * ColorifyOneTilePrice + OneNftMintingCost + MaximumClaimGasPrice + MaximumFwdFeeForBigMint) * 1_000_000_000).toString(),
+          amount: Math.floor((width / 10 * height / 10 * ColorifyOneTilePrice + OneNftMintingCost + MaximumClaimGasPrice + MaximumFwdFeeForBigMint) * 1_000_000_000).toString(),
         })
       }).then(firstTx => {
         return new Promise(async (resolve, reject) => {
@@ -545,10 +545,11 @@ export const Provider = {
           "tilesToColorify": tiles,
           "description": description || '',
           "url": url || '',
-          "sendGasBack": state.account
+          "sendGasBack": state.account,
+          "coinsToRedrawOneTile" : (ColorifyOneTilePrice * 1_000_000_000).toString()
         }).send({
           from: state.account,
-          amount: (width * height / 100 * 400_000_000 + 3_000_000_000).toString(),
+          amount: (Math.floor(width * height / 100 * ColorifyOneTilePrice * 1_000_000_000) + 1_000_000_000).toString(),
         }).then(function(firstTx) {
           return new Promise(async(resolve, reject) => {
             const subscriber = new state.provider.Subscriber();

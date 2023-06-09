@@ -301,7 +301,7 @@ export default {
       if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
         // go by link
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
-        if (nft) {
+        if (nft && nft.url) {
           // TODO validate url
           window.location = nft.url;
         }
