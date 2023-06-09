@@ -30,10 +30,10 @@ const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
     connection: {
       id: 1002,
-      group: "dev",
-      type: "jrpc",
+      group: "venom_devnet",
+      type: "graphql",
       data: {
-        endpoints: ["https://jrpc-devnet.venom.foundation/"],
+        endpoints: ["https://gql-devnet.venom.network/graphql"],
         latencyDetectionInterval: 1000,
         local: false,
       },
