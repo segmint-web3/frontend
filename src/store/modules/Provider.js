@@ -230,8 +230,8 @@ export const Provider = {
       state.providerId += 1;
       state.collectionContract = null;
       state.collectionCachedState = null;
-      state.collectionLoaded = false;
-      state.tiles = [];
+      // state.collectionLoaded = false;
+      // state.tiles = [];
 
       // unsubscribe previous provider
       state.collectionSubscriber && state.collectionSubscriber.unsubscribe();

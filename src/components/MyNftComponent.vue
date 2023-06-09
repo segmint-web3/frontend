@@ -90,6 +90,7 @@ export default {
   text-align: center;
   width: 100%;
   flex: 0;
+  padding-top: 5px;
 }
 .my-nft-container {
   padding-top: 20px;
@@ -113,8 +114,8 @@ export default {
   width: 24px;
   height: 24px;
   position: absolute;
-  right: 5px;
-  top: 3px;
+  right: 13px;
+  top: 8px;
   cursor: pointer;
 }
 .full-screen-popup {
