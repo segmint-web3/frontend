@@ -49,7 +49,7 @@ export default {
       }
     },
     scanLink: function() {
-      return `https://testnet.everscan.io/accounts/${this.$props.address.toString()}`;
+      return `https://devnet.venomscan.com/accounts/${this.$props.address.toString()}`;
     }
   },
   mounted() {
