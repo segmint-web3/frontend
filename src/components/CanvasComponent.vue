@@ -2,7 +2,7 @@
   <div class="wrapper">
     <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" @close="closeClaimModal"/>
     <mint-tokens-modal name='mint-tokens-modal' :amount="selectedPriceUSD" :onsuccess="onMintTokenModalSuccess" @close="closeMintTokensModal"/>
-    <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
+    <div class="canvas-container" @click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}
       </div>
@@ -25,13 +25,11 @@
 
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
-import MintTokensModal from '@/components/MintTokensModal.vue'
-// import zoomMixin from "@/mixins/zoom"
+import MintTokensModal from '@/components/MintTokensModal.vue';
 
 export default {
   name: 'CanvasComponent',
   components: {ClaimModal, MintTokensModal},
-  // mixins: [zoomMixin],
   props: {},
   data() {
     return {
@@ -49,6 +47,7 @@ export default {
       highLightNftId: null,
       lastMousePosX: 0,
       lastMousePosY: 0,
+      // zoom: {scale: 1, x: 0, y: 0}
     }
   },
   computed: {
@@ -172,7 +171,14 @@ export default {
           backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
-    }
+    },
+    // zoomOptions(){
+    //   return {minZoom: 0.5, maxZoom: 5,
+    //     beforeMouseDown: function(e) {
+    //     let shouldIgnore = !e.altKey;
+    //     return shouldIgnore;
+    //  }
+    // }};
   },
   mounted() {
     this.ctx = this.$refs.canvas.getContext('2d');
@@ -189,6 +195,12 @@ export default {
     })
   },
   methods: {
+    // onInit: function(panzoomInstance) {
+    //   panzoomInstance.on('zoom', (e) => {
+    //     this.zoom = e.getTransform();
+    //     console.log(e, this.zoom, e.getTransform());
+    //   });
+    // },
     clearSelection() {
       this.selectionInProcess = false;
       this.selectionStartX = null;
@@ -297,9 +309,10 @@ export default {
 
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
         if (nft && nft.url) {
-          window.open(nft.url, '_blank');
+          setTimeout(() => {
+            window.open(nft.url, '_blank');
+          })
         }
-
       }
       if (this.badTiles.length > 0) {
         this.clearSelection();

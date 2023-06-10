@@ -7,7 +7,7 @@
     </div>
     <div class='nft-info-container'>
       <div class='nft-info-title'>
-        <a :href='$props.url' target='_blank'>
+        <a :href='$props.url' target='_blank' :title="this.$props.description">
           {{this.$props.description}}
         </a>
       </div>
