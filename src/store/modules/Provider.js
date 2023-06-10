@@ -274,7 +274,7 @@ export const Provider = {
         fetchUserNfts(state.account, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
       }
       loadTiles(this.commit, collectionContract, collectionCachedState, providerId);
-      fetchAccountBalance(state.account, state.provider, this.commit);
+      state.account && fetchAccountBalance(state.account, state.provider, this.commit);
     },
     setTiles(state, {providerId, tiles, tilesByIndex}) {
       if (state.providerId !== providerId)
