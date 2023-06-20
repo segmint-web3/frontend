@@ -94,7 +94,7 @@ export default {
         const left = this.lastMousePosX > 600;
         return {
           top: `${this.lastMousePosY}px`,
-          left: `${left ? this.lastMousePosX - 205 : this.lastMousePosX + 15}px`,
+          left: `${left ? this.lastMousePosX - 235 : this.lastMousePosX + 15}px`,
           width: '200px',
           minHeight: '20px'
         }
@@ -268,7 +268,11 @@ export default {
         const tileInStore = this.$store.state.Provider.tilesByIndex[index];
         if (tileInStore && tileInStore.nftId !== '4294967295' && tileInStore.nftId !== this.highLightNftId) {
           this.highLightNftId = tileInStore.nftId;
-          this.$store.dispatch('Provider/fetchNftData', {id: tileInStore.nftId});
+          setTimeout(() => {
+            if (this.highLightNftId === tileInStore.nftId) {
+              this.$store.dispatch('Provider/fetchNftData', {id: tileInStore.nftId});
+            }
+          }, 1000);
         } else if(tileInStore.nftId !== this.highLightNftId) {
           this.highLightNftId = null;
         }
