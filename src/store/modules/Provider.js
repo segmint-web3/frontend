@@ -13,7 +13,7 @@ import {covertTileColorToPixels} from "@/utils/pixels";
 import {BN} from "bn.js";
 import Vue from "vue";
 
-const CollectionAddress = new Address("0:39e56510acc6bcdb694293fee3335da1fbbfae6fe661e6485bf2ece610341f5e");
+const CollectionAddress = new Address("0:798cd4f7c64cad0c9a004e88217e0ae262106db33223dcf042f8f4a0c1c323dd");
 const TokenRootAddress = new Address("0:431f19f8b5c48fba2368e995bd18772e20055900ae1872093fd4c7d563db1919");
 const ProxyOwnerAddress = new Address("0:589f7dacb9906334a950ae15cc10bc7d55bf43fbb646c63ffd3a7a591e764bc1");
 
@@ -30,17 +30,29 @@ const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
     connection: {
       id: 1002,
-      group: "venom_devnet",
-      type: "graphql",
+      group: "venom_testnet",
+      type: "jrpc",
       data: {
-        endpoints: ["https://gql-devnet.venom.network/graphql"],
-        latencyDetectionInterval: 1000,
-        local: false,
+        endpoint: "https://jrpc-devnet.venom.foundation/rpc"
       },
     },
   });
 
-async function providerChanged(provider, providerId, commit) {
+// const standaloneFallback = () =>
+//   EverscaleStandaloneClient.create({
+//     connection: {
+//       id: 1002,
+//       group: "venom_devnet",
+//       type: "graphql",
+//       data: {
+//         endpoints: ["https://gql-devnet.venom.network/graphql"],
+//         latencyDetectionInterval: 1000,
+//         local: false,
+//       },
+//     },
+//   });
+
+async function providerChanged(provider, commit) {
   console.log('get new state');
   const collectionContract = new provider.Contract(CollectionAbi, CollectionAddress);
   const {state: collectionCachedState} = await collectionContract.getFullState();
@@ -51,7 +63,6 @@ async function providerChanged(provider, providerId, commit) {
   let waitToColorify = [];
   collectionSubscriber.transactions(collectionContract.address).on(async (data) => {
     console.log('We got a new transaction on collection address', data);
-    commit('Provider/setCollection', {providerId, collectionContract, collectionCachedState, collectionSubscriber});
     commit('Provider/setUserNftIsNotLoaded');
     // TODO parse events
     for (let tx of data.transactions) {
@@ -68,7 +79,7 @@ async function providerChanged(provider, providerId, commit) {
             y: y,
             pixels: covertTileColorToPixels(event.data.tileColors)
           }
-          commit('Provider/setTile', {tile: tile, providerId: providerId});
+          commit('Provider/setTile', {tile: tile});
           if (waitToColorify.indexOf(event.data.nftId) !== -1) {
             waitToColorify.splice(waitToColorify.indexOf(event.data.nftId), 1);
             commit('Provider/setUserNftIsNotLoaded');
@@ -80,10 +91,10 @@ async function providerChanged(provider, providerId, commit) {
     }
   });
 
-  commit('Provider/setCollection', {providerId, collectionContract, collectionCachedState, collectionSubscriber});
+  commit('Provider/setCollection', {collectionContract, collectionCachedState, collectionSubscriber});
 }
 
-async function loadTiles(commit, collectionContract, cachedState, providerId) {
+async function loadTiles(commit, collectionContract, cachedState) {
   let tiles = [];
   let tilesByIndex = {};
   let {value0: tilesBlockchain} = await collectionContract.methods.getTiles({answerId: 0}).call({responsible: true, cachedState: cachedState});
@@ -123,7 +134,7 @@ async function loadTiles(commit, collectionContract, cachedState, providerId) {
     }
   }
 
-  commit('Provider/setTiles', {providerId, tiles, tilesByIndex});
+  commit('Provider/setTiles', {tiles, tilesByIndex});
 }
 
 async function fetchAccountBalance(address, provider, commit) {
@@ -138,10 +149,13 @@ async function fetchAccountBalance(address, provider, commit) {
 async function fetchUserNfts(userAddress, provider, collectionContract, collectionCachedState, commit) {
   console.log('Fetch users nfts!!!!!!');
   const {codeHash: indexCodeHash} = await collectionContract.methods.getNftIndexCodeHash({answerId: 0, _owner: userAddress}).call({responsible: true, cachedState: collectionCachedState})
+  console.log('Got init code hash');
   const {accounts: userNftsContracts} = await provider.getAccountsByCodeHash({codeHash: indexCodeHash});
+  console.log('Got accounts');
 
   let nfts = [];
   for (let indexAddress of userNftsContracts) {
+    console.log('Iterate', indexAddress);
     try {
       let contract = new provider.Contract(IndexAbi, indexAddress);
       let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
@@ -205,12 +219,12 @@ export const Provider = {
   state: {
     venomConnect: null,
     provider: null,
+    standaloneProvider: null,
     account: null,
     venomBalance: '0',
     userNftsLoadingStarted: false,
     userNfts: [],
     // subscriber for new events
-    providerId: 0, // For concurrency control, in case provider changed.
     collectionContract: null,
     collectionCachedState: null,
     collectionSubscriber: null,
@@ -226,20 +240,15 @@ export const Provider = {
     setVenomConnect(state, venomConnect) {
       state.venomConnect = venomConnect;
     },
+    setStandaloneProvider(state, provider) {
+      state.standaloneProvider = provider;
+      providerChanged(provider, this.commit);
+    },
     setProvider(state, provider) {
       console.log('setProvider', provider);
       // We have new instance of provider
       // Reset everything
-      state.providerId += 1;
-      state.collectionContract = null;
-      state.collectionCachedState = null;
-      // state.collectionLoaded = false;
-      // state.tiles = [];
-
       // unsubscribe previous provider
-      state.collectionSubscriber && state.collectionSubscriber.unsubscribe();
-      state.collectionSubscriber = null;
-
       state.tokenWalletContract = null;
       state.tokenWalletBalance = 0;
       state.tokenWalletSubscriber && state.tokenWalletSubscriber.unsubscribe();
@@ -249,7 +258,6 @@ export const Provider = {
       state.provider.subscribe('networkChanged').then((subscriber) => {
         subscriber.on('data', (event) => {
           // reinit tiles on network changed.
-          providerChanged(provider, state.providerId, this.commit);
           const currentProviderState = provider?.getProviderState().then((currentProviderState) => {
             if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
               // To reload balance and token balance
@@ -258,36 +266,26 @@ export const Provider = {
           })
         });
       })
-      providerChanged(provider, state.providerId, this.commit);
     },
-    setCollection(state, {providerId, collectionContract, collectionCachedState, collectionSubscriber}) {
-      console.log('setCollection')
-      if (state.providerId !== providerId) {
-        collectionSubscriber.unsubscribe();
-        return;
-      }
+    setCollection(state, {collectionContract, collectionCachedState, collectionSubscriber}) {
+      console.log('setCollection');
       state.collectionContract = collectionContract;
       state.collectionCachedState = collectionCachedState;
       state.collectionSubscriber = collectionSubscriber;
       if (!state.userNftsLoadingStarted && state.account) {
         state.userNftsLoadingStarted = true;
-        fetchUserNfts(state.account, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
+        fetchUserNfts(state.account, state.standaloneProvider, state.collectionContract, state.collectionCachedState, this.commit);
       }
-      loadTiles(this.commit, collectionContract, collectionCachedState, providerId);
+      loadTiles(this.commit, collectionContract, collectionCachedState);
       state.account && fetchAccountBalance(state.account, state.provider, this.commit);
     },
-    setTiles(state, {providerId, tiles, tilesByIndex}) {
-      if (state.providerId !== providerId)
-        return;
-
+    setTiles(state, {tiles, tilesByIndex}) {
       state.tiles = tiles;
       state.tilesByIndex = tilesByIndex;
       state.collectionLoaded = true;
     },
-    setTile(state, {providerId, tile}) {
+    setTile(state, { tile }) {
       console.log('setTile', tile);
-      if (state.providerId !== providerId)
-        return;
 
       let tiles = state.tiles;
       tiles = tiles.filter(t => t.index !== tile.index);
@@ -440,15 +438,13 @@ export const Provider = {
       venomConnect.checkAuth().then(async (provider) => {
         await provider?.ensureInitialized();
         const currentProviderState = await provider?.getProviderState();
-        console.log(provider);
+        let standAloneProvider = await venomConnect.getStandalone();
+        console.log('Standalone provider');
+        commit('setStandaloneProvider', standAloneProvider);
         if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
           console.log('Not standalone provider');
           commit('setProvider', provider);
           commit('setConnectedAccount', currentProviderState?.permissions?.accountInteraction?.address);
-        } else {
-          console.log('Standalone provider');
-          let standAloneProvider = await venomConnect.getStandalone();
-          commit('setProvider', standAloneProvider);
         }
       });
 
@@ -565,7 +561,7 @@ export const Provider = {
       })
     },
     fetchNftData({state, commit}, {id}) {
-      if (!state.nftDataById[id] && state.provider && state.collectionCachedState) {
+      if (!state.nftDataById[id] && state.standaloneProvider && state.collectionCachedState) {
         commit('setNftDataLoadingInProgress', id);
         state.collectionContract.methods.nftAddress({
           id: id,
@@ -574,7 +570,7 @@ export const Provider = {
           responsible: true,
           cachedState: state.collectionCachedState
         }).then(answer => {
-          let nftContract = new state.provider.Contract(NftAbi, answer.nft);
+          let nftContract = new state.standaloneProvider.Contract(NftAbi, answer.nft);
           return nftContract.methods.getNftCustomData({
             answerId: 0
           }).call({
