@@ -1,7 +1,8 @@
 <template>
   <div id="app">
+    <rules-modal name='rules-modal' />
     <MyNftComponent v-if='myNftOpened' :onClose='closeMyNfts'/>
-    <HeaderComponent :openMyNfts='openMyNfts' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
+    <HeaderComponent :openMyNfts='openMyNfts' :openFaq='openFaq' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
     <CanvasComponent :isEditingMode='isEditingMode' />
     <div v-if='!isCollectionLoaded' class='loading-fullscreen'>
       <div>
@@ -22,13 +23,15 @@
 import HeaderComponent from './components/HeaderComponent.vue'
 import CanvasComponent from './components/CanvasComponent.vue'
 import MyNftComponent from "@/components/MyNftComponent.vue";
+import RulesModal from "@/components/RulesModal.vue";
 
 export default {
   name: 'App',
   components: {
     HeaderComponent,
     CanvasComponent,
-    MyNftComponent
+    MyNftComponent,
+    RulesModal
   },
   data() {
     return {
@@ -47,6 +50,7 @@ export default {
   },
   mounted() {
     this.$store.dispatch('Provider/init', {});
+    this.$modal.show('rules-modal');
   },
   methods: {
     closeMyNfts() {
@@ -55,12 +59,11 @@ export default {
     openMyNfts() {
       this.myNftOpened = true;
     },
+    openFaq() {
+      this.$modal.show('rules-modal');
+    },
     toggleEditingMode() {
       this.isEditingMode = !this.isEditingMode;
-    },
-    showError(message) {
-      this.message = message;
-      this.$modal.show('message-modal');
     }
   }
 }
@@ -80,6 +83,11 @@ html, body {
 }
 #app {
   font-family: "ChakraPetch", Helvetica, Arial;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
 }
 .loading-fullscreen {
   z-index: 1000;

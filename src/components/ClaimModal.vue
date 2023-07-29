@@ -139,11 +139,12 @@ export default {
         }
         params = {
           source: this.image,
-          width: drawWidth,
-          height: drawHeight,
+          width: Math.floor(drawWidth),
+          height: Math.floor(drawHeight),
           output: 'image',
           quality: 1
         }
+        console.log(params)
       } else if (this.resizeMode === 'cover') {
         const aspectRatio = this.image.width / this.image.height;
         const canvasAspectRatio = width / height;

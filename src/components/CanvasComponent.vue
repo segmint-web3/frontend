@@ -3,8 +3,10 @@
     <message-modal name='canvas-message-modal' :message='errorMessage'/>
     <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
     <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
-      <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
-      <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
+      <div class='canvas-stack'>
+        <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
+        <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
+      </div>
       <div class="hover-popup" :style="highLightPopupStyles">
         {{highlightNftDescription}}
       </div>
@@ -469,6 +471,9 @@ export default {
 <style scoped>
 .wrapper {
   font-family: "ChakraPetch", Helvetica, Arial;
+  height: 100%;
+  width: 100%;
+  overflow: scroll;
 }
 .canvas-container {
   margin: 100px auto 50px;
