@@ -7,11 +7,14 @@
       </div>
       <div class=" flex claim-modal-content">
         <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
-        <div v-if="!canBeClaimed" class="instructions">
-          Please upload a picture {{this.width}}x{{this.height}}px.
+        <div v-if='!$props.id' class="instructions">
+          You have selected a {{this.width}}x{{this.height}} segment
         </div>
-        <div v-else class="instructions">
-          You have selected a {{this.width}}x{{this.height}}px segment
+        <div v-if='!$props.id' class="instructions">
+           {{`Price ${this.mintingPrice} VENOM`}}
+        </div>
+        <div v-if="!canBeClaimed && $props.id" class="instructions">
+          Please upload a picture {{this.width}}x{{this.height}}px.
         </div>
         <label for="assetsFieldHandle" class="file-upload">
           <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
@@ -43,7 +46,7 @@
           </div>
           <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
-            {{$props.id ? 'Edit segment' : `Mint for ${this.mintingPrice} V`}}
+            {{$props.id ? 'Edit segment' : `Mint segment`}}
           </button>
         </form>
         <div v-if='claimInProgress' class="claim-in-progress">
@@ -307,9 +310,10 @@ canvas {
 }
 .instructions {
   font-weight: 700;
-  margin: 0 20px 20px;
+  margin: 5px 0;
 }
 .file-upload {
+  margin: 10px;
   position: relative;
   cursor: pointer;
 }
