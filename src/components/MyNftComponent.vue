@@ -1,5 +1,6 @@
 <template>
   <div class='full-screen-popup'>
+    <message-modal name='nft-message-modal' :message='message'/>
     <div class='full-screen-popup-fade' @click='$props.onClose'></div>
     <div class="my-nft-wrapper">
       <div class='my-nft-header'>
@@ -8,7 +9,7 @@
       </div>
       <div class='my-nft-container'>
         <div v-for="nft in nfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :address='nft.address' :id='nft.id' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+          <OneNftComponent :onError='onError' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
       </div>
     </div>
@@ -16,14 +17,17 @@
   </div>
 </template>
 <script>
+
 import OneNftComponent from '@/components/OneNftComponent.vue'
 import ClaimModal from "@/components/ClaimModal.vue";
+import MessageModal from '@/components/MessageModal.vue'
 
 export default {
   name: 'MyNftComponent',
   components: {
     OneNftComponent,
-    ClaimModal
+    ClaimModal,
+    MessageModal
   },
   data () {
     return {
@@ -32,7 +36,8 @@ export default {
       editNftWidth: null,
       editNftHeight: null,
       editNftX: null,
-      editNftY: null
+      editNftY: null,
+      message: ""
     }
   },
   props: ['onClose'],
@@ -47,6 +52,10 @@ export default {
   mounted(){
   },
   methods: {
+    onError(message) {
+      this.message = message;
+      this.$modal.show('nft-message-modal');
+    },
     onEdit(id, x, y, width, height) {
       this.editNftId = id;
       this.editNftX = x;

@@ -1,8 +1,8 @@
 <template>
   <div id="app">
     <MyNftComponent v-if='myNftOpened' :onClose='closeMyNfts'/>
-    <HeaderComponent :openMyNfts='openMyNfts' />
-    <CanvasComponent />
+    <HeaderComponent :openMyNfts='openMyNfts' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
+    <CanvasComponent :isEditingMode='isEditingMode' />
     <div v-if='!isCollectionLoaded' class='loading-fullscreen'>
       <div>
         <h1>Loading collection</h1>
@@ -27,6 +27,8 @@ export default {
   data() {
     return {
       myNftOpened: false,
+      isEditingMode: false,
+      message: 'Its okay to be not okay'
     }
   },
   computed: {
@@ -38,12 +40,19 @@ export default {
     this.$store.dispatch('Provider/init', {});
   },
   methods: {
-    closeMyNfts(){
+    closeMyNfts() {
       this.myNftOpened = false;
     },
-    openMyNfts(){
+    openMyNfts() {
       this.myNftOpened = true;
     },
+    toggleEditingMode() {
+      this.isEditingMode = !this.isEditingMode;
+    },
+    showError(message) {
+      this.message = message;
+      this.$modal.show('message-modal');
+    }
   }
 }
 </script>

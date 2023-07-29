@@ -1,5 +1,9 @@
 import { BN } from "bn.js";
 
+const WhiteTile = Array(10 * 10 * 4).fill(255);
+export function getWhitePixels() {
+  return WhiteTile;
+}
 export function covertTileColorToPixels(colors) {
   let pixels = [];
   for (let y = 0; y < 10; y++) {

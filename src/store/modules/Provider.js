@@ -5,140 +5,212 @@ import { EverscaleStandaloneClient } from "everscale-standalone-client";
 import CollectionAbi from "./abi/SegmintCollection.abi.json";
 import NftAbi from "./abi/SegmintNft.abi.json";
 import IndexAbi from "./abi/Index.abi.json";
-import TokenRootAbi from "./abi/TokenRootUpgradeable.abi.json";
-import TokenWalletAbi from "./abi/TokenWalletUpgradeable.abi.json";
-import ProxyOwnerAbi from "./abi/ProxyOwner.abi.json";
 
-import {covertTileColorToPixels} from "@/utils/pixels";
+import { covertTileColorToPixels, getWhitePixels } from '@/utils/pixels'
 import {BN} from "bn.js";
 import Vue from "vue";
 
-const CollectionAddress = new Address("0:798cd4f7c64cad0c9a004e88217e0ae262106db33223dcf042f8f4a0c1c323dd");
-const TokenRootAddress = new Address("0:431f19f8b5c48fba2368e995bd18772e20055900ae1872093fd4c7d563db1919");
-const ProxyOwnerAddress = new Address("0:589f7dacb9906334a950ae15cc10bc7d55bf43fbb646c63ffd3a7a591e764bc1");
+const CollectionAddress = new Address("0:091ab4602f7a9d3c9055995d299aad89a7a4fc851cb995560b6a74492f14bc9d");
 
-const TokenRootDecimals = 9;
-const ColorifyOneTilePrice = 0.04;
-// wallet -> token 0.9, waltet -> wallet 0.5, wallet -> collection 0.5, collection -> nft(colorify) 0.5;
-const MaximumFwdFeeForBigMint = 0.9 + 0.5 + 0.5 + 0.5 + 0.5;
-// 1 for deploy nft + indexes, 0.2 for fwd fee + 1 coin reserved on collection contract
-const OneNftMintingCost = 2.2;
-// whole block, 1 for se, 0.2 for venom.
-const MaximumClaimGasPrice = 1;
+const ColorifyOneTilePrice = 0.017;
+// wallet to collection 1, collection nft 0.5
+const MaximumFwdFeeForBigMint = 0.15;
+// 1 for deploy nft, 1 create nft,
+const OneNftMintingCost = 0.8;
+// Whole block, 1 for se, 0.2 for venom.
+const MaximumClaimGasPrice = 0.15;
+
+const BurnNftValue = 1.1;
+const nftBanList = [];
 
 const standaloneFallback = () =>
   EverscaleStandaloneClient.create({
     connection: {
-      id: 1002,
-      group: "venom_testnet",
+      id: 1000,
+      group: "dev",
       type: "jrpc",
       data: {
-        endpoint: "https://jrpc-devnet.venom.foundation/rpc"
+        endpoint: "https://jrpc-testnet.venom.foundation/"
       },
     },
   });
 
-// const standaloneFallback = () =>
-//   EverscaleStandaloneClient.create({
-//     connection: {
-//       id: 1002,
-//       group: "venom_devnet",
-//       type: "graphql",
-//       data: {
-//         endpoints: ["https://gql-devnet.venom.network/graphql"],
-//         latencyDetectionInterval: 1000,
-//         local: false,
-//       },
-//     },
-//   });
 
-async function providerChanged(provider, commit) {
-  console.log('get new state');
-  const collectionContract = new provider.Contract(CollectionAbi, CollectionAddress);
-  const {state: collectionCachedState} = await collectionContract.getFullState();
+async function loadCollection(provider, commit) {
+  let collectionSubscriber;
+  try {
+    collectionSubscriber = new provider.Subscriber()
+    // Subscribe at first
+    const collectionContract = new provider.Contract(CollectionAbi, CollectionAddress);
 
-  console.log('state got');
-  const collectionSubscriber = new provider.Subscriber();
-  // ug
-  let waitToColorify = [];
-  collectionSubscriber.transactions(collectionContract.address).on(async (data) => {
-    console.log('We got a new transaction on collection address', data);
-    commit('Provider/setUserNftIsNotLoaded');
-    // TODO parse events
-    for (let tx of data.transactions) {
-      let events = await collectionContract.decodeTransactionEvents({transaction: tx});
-      for (let event of events) {
-        if (event.event === "TileColorify") {
-          let x = parseInt(event.data.pixelStartX);
-          let y = parseInt(event.data.pixelStartY);
+    // Is cached state loaded
+    let stateLoaded = false;
 
-          let tile = {
-            index: (x / 10) * 100 + y/10,
-            nftId: event.data.nftId,
-            x: x,
-            y: y,
-            pixels: covertTileColorToPixels(event.data.tileColors)
+    // We collect every new taken pixels & colorify nfts
+    // To be added after cached state is loaded.
+    let updatesToAddAfterStateIsLoaded = [];
+
+    collectionSubscriber.transactions(collectionContract.address).on(async (data) => {
+      console.log('We got a new transactions on collection address', data);
+      for (let tx of data.transactions.reverse()) {
+        let events = await collectionContract.decodeTransactionEvents({ transaction: tx });
+        for (let event of events) {
+          if (event.event === "TileColorify") {
+            let x = parseInt(event.data.pixelStartX);
+            let y = parseInt(event.data.pixelStartY);
+
+            let tile = {
+              index: (x / 10) * 100 + y / 10,
+              nftId: event.data.nftId,
+              epoch: event.data.nftEpoch,
+              x: x,
+              y: y,
+              pixels: covertTileColorToPixels(event.data.tileColors)
+            }
+            if (stateLoaded) {
+              commit('Provider/setTile', { tile: tile });
+            } else {
+              updatesToAddAfterStateIsLoaded.push({
+                type: 'Provider/setTile',
+                data: { tile: tile }
+              })
+            }
+          } else if (event.event === 'NftMinted') {
+            let x = parseInt(event.data.pixelStartX);
+            let y = parseInt(event.data.pixelStartY);
+
+            let endX = parseInt(event.data.pixelEndX);
+            let endY = parseInt(event.data.pixelEndY);
+
+            for (let tx = x / 10; tx < endX / 10; tx++) {
+              for (let ty = y / 10; ty < endY / 10; ty++) {
+                let tile = {
+                  index: tx * 100 + ty,
+                  nftId: event.data.nftId,
+                  epoch: event.data.nftEpoch,
+                  x: tx * 10,
+                  y: ty * 10,
+                  pixels: getWhitePixels()
+                }
+                if (stateLoaded) {
+                  commit('Provider/setTile', { tile: tile });
+                } else {
+                  updatesToAddAfterStateIsLoaded.push({
+                    type: 'Provider/setTile',
+                    data: { tile: tile }
+                  })
+                }
+              }
+            }
+          } else if (event.event === 'MintDisabledChanged') {
+            if (stateLoaded) {
+              commit('Provider/setMintDisabled', event.data.newValue);
+            } else {
+              updatesToAddAfterStateIsLoaded.push({
+                type: 'Provider/setMintDisabled',
+                data: event.data.newValue
+              })
+            }
+          } else if (event.event === 'EpochChanged') {
+            if (stateLoaded) {
+              commit('Provider/setEpoch', { epoch: event.data.newEpoch, price: event.data.oneTileClaimPrice });
+            } else {
+              updatesToAddAfterStateIsLoaded.push({
+                type: 'Provider/setEpoch',
+                data: { epoch: event.data.newEpoch, price: event.data.oneTileClaimPrice }
+              })
+            }
           }
-          commit('Provider/setTile', {tile: tile});
-          if (waitToColorify.indexOf(event.data.nftId) !== -1) {
-            waitToColorify.splice(waitToColorify.indexOf(event.data.nftId), 1);
-            commit('Provider/setUserNftIsNotLoaded');
+        }
+      }
+    });
+
+    // to give time subscriber to subscribe
+    await new Promise(function(resolve, reject) {
+      setTimeout(resolve, 50);
+    })
+
+    let seconds = Date.now();
+    console.log('get new state');
+    const { state: collectionCachedState } = await collectionContract.getFullState();
+    console.log('state got', ((Date.now() - seconds)/1000).toFixed(1));
+
+    // load tiles
+    let tilesColorsByIndex = {};
+    let tilesByIndex = {};
+
+    let {fields: parsedState} = await collectionContract.getFields({cachedState: collectionCachedState});
+    console.log('state parsed', ((Date.now() - seconds)/1000).toFixed(1));
+
+
+    for (let elem of parsedState.tiles_) {
+      let blockchainIndex = new BN(elem[0]);
+      let x = parseInt(blockchainIndex.shrn(7).toString(10));
+      let y = parseInt(blockchainIndex.and(new BN('127', 10)).toString(10));
+
+      const index = x * 100 + y;
+      tilesColorsByIndex[index] = covertTileColorToPixels(elem[1]);
+    }
+
+    for (let elem of parsedState.tileOwner_) {
+      let blockchainIndex = new BN(elem[0]);
+      let nftIdEpochId = new BN(elem[1]);
+      let x = parseInt(blockchainIndex.shrn(7).toString(10));
+      let y = parseInt(blockchainIndex.and(new BN('127', 10)).toString(10));
+
+      let nftId = nftIdEpochId.shrn(32).toString(10);
+      let epoch = nftIdEpochId.and(new BN('4294967295', 10)).toString(10);
+
+      const index = x * 100 + y;
+      let tile = {
+        index: index,
+        nftId: nftId,
+        epoch: epoch,
+        x: x * 10,
+        y: y * 10,
+        pixels: nftBanList.indexOf(nftId) === -1 ? tilesColorsByIndex[index] || getWhitePixels() : getWhitePixels()
+      }
+      tilesByIndex[index] = tile;
+    }
+
+    for (let y = 0; y < 100; y++) {
+      for (let x = 0; x < 100; x++) {
+        let index = x * 100 + y;
+        if (!tilesByIndex[index]) {
+          const tile = {
+            index: index,
+            nftId: "4294967295",
+            epoch: 0,
+            x: x * 10,
+            y: y * 10,
+            pixels: Array(10 * 10 * 4).fill(0)
           }
-        } else if (event.event === 'NftMinted') {
-          waitToColorify.push(event.data.nftId)
+          tilesByIndex[index] = tile;
         }
       }
     }
-  });
 
-  commit('Provider/setCollection', {collectionContract, collectionCachedState, collectionSubscriber});
-}
+    commit('Provider/setEpoch', { epoch: parsedState.currentEpoch_, price: parsedState.currentEpochPixelTilePrice_ });
+    commit('Provider/setMintDisabled', parsedState.mintDisabled_);
+    commit('Provider/setCollection', { collectionContract, collectionCachedState, tilesByIndex, nftTvc: await provider.codeToTvc(parsedState._codeNft) });
+    stateLoaded = true;
 
-async function loadTiles(commit, collectionContract, cachedState) {
-  let tiles = [];
-  let tilesByIndex = {};
-  let {value0: tilesBlockchain} = await collectionContract.methods.getTiles({answerId: 0}).call({responsible: true, cachedState: cachedState});
-
-  for (let elem of tilesBlockchain) {
-    let blockchainIndex = new BN(elem[0]);
-    let coloredTile = elem[1];
-    let x = parseInt(blockchainIndex.shrn(7).toString(10));
-    let y = parseInt(blockchainIndex.and(new BN('127', 10)).toString(10));
-
-    const index = x * 100 + y;
-    let tile = {
-      index: index,
-      nftId: coloredTile.nftId,
-      x: x * 10,
-      y: y * 10,
-      pixels: covertTileColorToPixels(coloredTile.colors)
+    // rollup pending events
+    for (let event of updatesToAddAfterStateIsLoaded) {
+      console.log('pending events');
+      commit(event.type, event.data);
     }
-    tiles.push(tile);
-    tilesByIndex[index] = tile;
+    console.log('Parsed', ((Date.now() - seconds)/1000).toFixed(1));
+  } catch (e) {
+    console.log('load collection error', e);
+    collectionSubscriber && collectionSubscriber.unsubscribe();
+    setTimeout(function() {
+      loadCollection(provider, commit);
+    }, 10000)
   }
-
-  for (let y = 0; y < 100; y++) {
-    for (let x = 0; x < 100; x++) {
-      let index = x * 100 + y;
-      if (!tilesByIndex[index]) {
-        const tile = {
-          index: index,
-          nftId: "4294967295",
-          x: x * 10,
-          y: y * 10,
-          pixels: Array(10 * 10 * 4).fill(0)
-        }
-        tiles.push(tile);
-        tilesByIndex[index] = tile;
-      }
-    }
-  }
-
-  commit('Provider/setTiles', {tiles, tilesByIndex});
 }
 
 async function fetchAccountBalance(address, provider, commit) {
-  console.log('fetchAccountBalance')
   provider.getBalance(address).then(function(balance) {
     if (balance) {
       commit('Provider/setAccountBalance', {address, balance: (balance / 1_000_000_000).toFixed(1)});
@@ -146,8 +218,35 @@ async function fetchAccountBalance(address, provider, commit) {
   })
 }
 
-async function fetchUserNfts(userAddress, provider, collectionContract, collectionCachedState, commit) {
-  console.log('Fetch users nfts!!!!!!');
+async function fetchUserNft(id, nftTvc, userAddress, provider, commit) {
+  const {address: nftAddress} = await provider.getStateInit(NftAbi, {
+    workchain: 0,
+    tvc: nftTvc,
+    initParams: {
+      _id: id
+    }
+  })
+  const nftContract = new provider.Contract(NftAbi, nftAddress);
+  let nftInfo = await nftContract.methods.getNftCustomData({answerId:0}).call({responsible: true});
+  commit('setUserNft', {
+    userAddress: userAddress,
+    nft: {
+      address: nftAddress,
+      id: nftInfo.id,
+      owner: nftInfo.owner,
+      lockedAmount: nftInfo.lockedAmount,
+      description: nftInfo.description,
+      url: nftInfo.url,
+      x: parseInt(nftInfo.tilePixelsStartX),
+      y: parseInt(nftInfo.tilePixelsStartY),
+      width: parseInt(nftInfo.tilePixelsEndX) - parseInt(nftInfo.tilePixelsStartX),
+      height: parseInt(nftInfo.tilePixelsEndY) - parseInt(nftInfo.tilePixelsStartY)
+    }
+  })
+}
+
+async function fetchUserNfts(userAddress, provider, nftTvc, collectionContract, collectionCachedState, commit) {
+  console.log('Fetch users nfts!!!');
   const {codeHash: indexCodeHash} = await collectionContract.methods.getNftIndexCodeHash({answerId: 0, _owner: userAddress}).call({responsible: true, cachedState: collectionCachedState})
   console.log('Got init code hash');
   const {accounts: userNftsContracts} = await provider.getAccountsByCodeHash({codeHash: indexCodeHash});
@@ -161,57 +260,34 @@ async function fetchUserNfts(userAddress, provider, collectionContract, collecti
       let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
       const nftContract = new provider.Contract(NftAbi, nftAddress);
       const {state: nftContractFullState} = await nftContract.getFullState();
+
       if (nftContractFullState && nftContractFullState.isDeployed) {
         let nftInfo = await nftContract.methods.getNftCustomData({answerId:0}).call({responsible: true, cachedState: nftContractFullState});
         if (nftInfo.owner.equals(userAddress)  && nftInfo.collection.equals(collectionContract.address)) {
-          const {nft: expectedNftAddress} = await collectionContract.methods.nftAddress({answerId: 0, id: nftInfo.id}).call({responsible: true, cachedState: collectionCachedState})
+          const {address: expectedNftAddress} = await provider.getStateInit(NftAbi, { workchain: 0, tvc: nftTvc, initParams: { _id: nftInfo.id } });
           if (expectedNftAddress.equals(nftAddress)) {
-            nfts.push({
-              address: nftAddress,
-              id: nftInfo.id,
-              owner: nftInfo.owner,
-              description: nftInfo.description,
-              url: nftInfo.url,
-              x: parseInt(nftInfo.tilePixelsStartX),
-              y: parseInt(nftInfo.tilePixelsStartY),
-              width: parseInt(nftInfo.tilePixelsEndX) - parseInt(nftInfo.tilePixelsStartX),
-              height: parseInt(nftInfo.tilePixelsEndY) - parseInt(nftInfo.tilePixelsStartY)
-            });
+            commit('Provider/setUserNft', {
+              userAddress: userAddress,
+              nft: {
+                address: nftAddress,
+                id: nftInfo.id,
+                owner: nftInfo.owner,
+                lockedAmount: nftInfo.lockedAmount,
+                description: nftInfo.description,
+                url: nftInfo.url,
+                x: parseInt(nftInfo.tilePixelsStartX),
+                y: parseInt(nftInfo.tilePixelsStartY),
+                width: parseInt(nftInfo.tilePixelsEndX) - parseInt(nftInfo.tilePixelsStartX),
+                height: parseInt(nftInfo.tilePixelsEndY) - parseInt(nftInfo.tilePixelsStartY)
+              }
+            })
           }
         }
       }
     } catch (e) {
       console.log(e);
-      // nothing
     }
   }
-  commit('Provider/setUserNfts', {address: userAddress, nfts: nfts});
-}
-
-async function fetchUserTokenWalletBalance(address, provider, commit) {
-  const tokenRootContract = new provider.Contract(TokenRootAbi, TokenRootAddress);
-  const {value0: walletAddress} = await tokenRootContract.methods.walletOf({answerId: 0, walletOwner: address}).call({responsible: true});
-
-  const tokenWalletContract = new provider.Contract(TokenWalletAbi, walletAddress);
-
-  const {state} = await tokenWalletContract.getFullState();
-  let balance = 0;
-  if (state && state.isDeployed) {
-    const {value0: walletBalance} = await tokenWalletContract.methods.balance({answerId: 0}).call({responsible: true});
-    console.log('wallet balance', walletBalance);
-    balance = parseInt(walletBalance);
-  } else {
-    console.log('wallet is not deployed');
-  }
-
-  const subscriber = new provider.Subscriber();
-  subscriber.transactions(tokenWalletContract.address).on(async (data) => {
-    // we got a new transaction
-    console.log('wallet new transaction')
-    const {value0: walletBalance} = await tokenWalletContract.methods.balance({answerId: 0}).call({responsible: true});
-    commit('Provider/setTokenWallet', {address, tokenWalletContract, balance: parseInt(walletBalance), subscriber});
-  })
-  commit('Provider/setTokenWallet', {address, tokenWalletContract, balance, subscriber});
 }
 
 export const Provider = {
@@ -221,20 +297,19 @@ export const Provider = {
     provider: null,
     standaloneProvider: null,
     account: null,
+    accountBalanceSubscriber: null,
     venomBalance: '0',
     userNftsLoadingStarted: false,
     userNfts: [],
-    // subscriber for new events
     collectionContract: null,
     collectionCachedState: null,
-    collectionSubscriber: null,
     collectionLoaded: false,
-    tokenWalletContract: null,
-    tokenWalletSubscriber: null,
-    tokenWalletBalance: 0,
-    tiles: [],
+    nftTvc: undefined,
+    epoch: 0,
+    currentTilePrice: 0,
+    mintEnabled: true,
     tilesByIndex: {},
-    nftDataById: {}
+    nftDataById: {},
   },
   mutations: {
     setVenomConnect(state, venomConnect) {
@@ -242,18 +317,10 @@ export const Provider = {
     },
     setStandaloneProvider(state, provider) {
       state.standaloneProvider = provider;
-      providerChanged(provider, this.commit);
+      loadCollection(provider, this.commit);
     },
     setProvider(state, provider) {
       console.log('setProvider', provider);
-      // We have new instance of provider
-      // Reset everything
-      // unsubscribe previous provider
-      state.tokenWalletContract = null;
-      state.tokenWalletBalance = 0;
-      state.tokenWalletSubscriber && state.tokenWalletSubscriber.unsubscribe();
-      state.tokenWalletSubscriber = null;
-
       state.provider = provider;
       state.provider.subscribe('networkChanged').then((subscriber) => {
         subscriber.on('data', (event) => {
@@ -267,32 +334,29 @@ export const Provider = {
         });
       })
     },
-    setCollection(state, {collectionContract, collectionCachedState, collectionSubscriber}) {
+    setCollection(state, {collectionContract, collectionCachedState, tilesByIndex, nftTvc}) {
       console.log('setCollection');
       state.collectionContract = collectionContract;
       state.collectionCachedState = collectionCachedState;
-      state.collectionSubscriber = collectionSubscriber;
+      state.tilesByIndex = tilesByIndex;
+      state.nftTvc = nftTvc
+      state.collectionLoaded = true;
       if (!state.userNftsLoadingStarted && state.account) {
         state.userNftsLoadingStarted = true;
-        fetchUserNfts(state.account, state.standaloneProvider, state.collectionContract, state.collectionCachedState, this.commit);
+        fetchUserNfts(state.account, state.standaloneProvider, state.nftTvc, state.collectionContract, state.collectionCachedState, this.commit);
       }
-      loadTiles(this.commit, collectionContract, collectionCachedState);
       state.account && fetchAccountBalance(state.account, state.provider, this.commit);
     },
-    setTiles(state, {tiles, tilesByIndex}) {
-      state.tiles = tiles;
-      state.tilesByIndex = tilesByIndex;
-      state.collectionLoaded = true;
-    },
     setTile(state, { tile }) {
-      console.log('setTile', tile);
-
-      let tiles = state.tiles;
-      tiles = tiles.filter(t => t.index !== tile.index);
-      tiles.push(tile);
+      if (nftBanList.indexOf(tile.nftId) !== -1)
+        return;
       state.tilesByIndex[tile.index] = tile;
-      state.tiles = tiles;
       delete state.nftDataById[tile.nftId]
+    },
+    nftMinted(state, {owner, id}) {
+      if (state.account && state.account.equals(owner)) {
+        fetchUserNft(id, state.nftTvc, owner, state.provider, this.commit);
+      }
     },
     setConnectedAccount(state, address) {
       console.log('setConnectedAccount');
@@ -300,25 +364,16 @@ export const Provider = {
       state.venomBalance = '0';
       state.userNfts = [];
 
-      state.tokenWalletContract = null;
-      state.tokenWalletBalance = 0;
-      state.tokenWalletSubscriber && state.tokenWalletSubscriber.unsubscribe();
-      state.tokenWalletSubscriber = null;
-
+      state.accountBalanceSubscriber && clearInterval(state.accountBalanceSubscriber);
       address && fetchAccountBalance(address, state.provider, this.commit);
+      address && (state.accountBalanceSubscriber = setInterval(() => {
+        fetchAccountBalance(address, state.provider, this.commit)
+      }, 15 *1000));
       if (address && state.collectionCachedState) {
         state.userNftsLoadingStarted = true;
-        fetchUserNfts(address, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
+        fetchUserNfts(address, state.standaloneProvider, state.collectionContract, state.collectionCachedState, this.commit);
       } else {
         state.userNftsLoadingStarted = false;
-      }
-      address && fetchUserTokenWalletBalance(address, state.provider, this.commit);
-    },
-    setTokenWallet(state, {address, tokenWalletContract, balance, subscriber}) {
-      if (address.equals(state.account)) {
-        state.tokenWalletContract = tokenWalletContract;
-        state.tokenWalletBalance = balance;
-        state.tokenWalletSubscriber = subscriber;
       }
     },
     setAccountBalance(state, {address, balance}) {
@@ -337,20 +392,22 @@ export const Provider = {
         state.nftDataById = nftDataById;
       }
     },
-    setUserNfts(state, {address, nfts}) {
-      if (state.account && state.account.equals(address)) {
+    setUserNft(state, {userAddress, nft}) {
+      if (state.account && state.account.equals(userAddress) && !state.userNfts.find(n => n.id === nft.id)) {
+        let nfts = state.userNfts.slice();
+        nfts.push(nft);
         state.userNfts = nfts;
       }
     },
-    setUserNftIsNotLoaded(state) {
-      console.log('setUserNftIsNotLoaded')
-      if (state.account && state.collectionContract) {
-        state.userNftsLoadingStarted = true;
-        // just reload
-        fetchUserNfts(state.account, state.provider, state.collectionContract, state.collectionCachedState, this.commit);
-      } else {
-        state.userNftsLoadingStarted = false;
-      }
+    removeUserNft(state, id) {
+      state.userNfts = state.userNfts.filter(nft => nft.id !== id);
+    },
+    setMintDisabled(state, newValue) {
+      state.mintDisabled = newValue;
+    },
+    setEpoch(state, {epoch, price}) {
+      state.currentTilePrice = price;
+      state.epoch = epoch;
     },
     setNftData(state, {id, description, url}) {
       // TODO think how to make better to trigger update
@@ -375,7 +432,7 @@ export const Provider = {
         return;
       const venomConnect = new VenomConnect({
         theme: 'light',
-        checkNetworkId: 1002, // 42 - ever main/dev, 1002 - venom devnet, 1 - venom mainnet
+        checkNetworkId: 1000, //  1000 - venom testnet
         providersOptions: {
           venomwallet: {
             links: {},
@@ -404,33 +461,33 @@ export const Provider = {
               "android",
             ],
           },
-          everwallet: {
-            links: {},
-            walletWaysToConnect: [
-              {
-                // NPM package
-                package: ProviderRpcClient,
-                packageOptions: {
-                  fallback:
-                    VenomConnect.getPromise("everwallet", "extension") ||
-                    (() => Promise.reject()),
-                  forceUseFallback: true,
-                },
-                packageOptionsStandalone: {
-                  fallback: standaloneFallback,
-                  forceUseFallback: true,
-                },
-                id: "extension",
-                type: "extension",
-              },
-            ],
-            defaultWalletWaysToConnect: [
-              // List of enabled options
-              "mobile",
-              "ios",
-              "android",
-            ],
-          },
+          // everwallet: {
+          //   links: {},
+          //   walletWaysToConnect: [
+          //     {
+          //       // NPM package
+          //       package: ProviderRpcClient,
+          //       packageOptions: {
+          //         fallback:
+          //           VenomConnect.getPromise("everwallet", "extension") ||
+          //           (() => Promise.reject()),
+          //         forceUseFallback: true,
+          //       },
+          //       packageOptionsStandalone: {
+          //         fallback: standaloneFallback,
+          //         forceUseFallback: true,
+          //       },
+          //       id: "extension",
+          //       type: "extension",
+          //     },
+          //   ],
+          //   defaultWalletWaysToConnect: [
+          //     // List of enabled options
+          //     "mobile",
+          //     "ios",
+          //     "android",
+          //   ],
+          // },
         },
       });
       commit('setVenomConnect', venomConnect);
@@ -439,17 +496,15 @@ export const Provider = {
         await provider?.ensureInitialized();
         const currentProviderState = await provider?.getProviderState();
         let standAloneProvider = await venomConnect.getStandalone();
-        console.log('Standalone provider');
         commit('setStandaloneProvider', standAloneProvider);
         if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
-          console.log('Not standalone provider');
+          console.log('We connected');
           commit('setProvider', provider);
           commit('setConnectedAccount', currentProviderState?.permissions?.accountInteraction?.address);
         }
       });
 
       venomConnect.on('extension-auth', async function (provider) {
-        console.log('extension-auth');
         const currentProviderState = await provider?.getProviderState();
         commit('setProvider', provider);
         if (currentProviderState?.permissions?.accountInteraction?.address) {
@@ -463,39 +518,6 @@ export const Provider = {
     disconnect({state, commit}) {
       state.provider.disconnect();
       commit('setConnectedAccount', null);
-      state.venomConnect.getStandalone().then(function (standAloneProvider) {
-        console.log('Standalone provider');
-        commit('setProvider', standAloneProvider);
-      });
-    },
-    mintTokens({state, commit}, {amount}) {
-      console.log('mint tokens', state.account);
-      if (state.account === null) {
-        // connect first
-        state.venomConnect.connect();
-        return;
-      }
-      const proxyOwnerContract = new state.provider.Contract(ProxyOwnerAbi, ProxyOwnerAddress);
-      const promise = proxyOwnerContract.methods.mint({
-        amount: amount,
-        recipient: state.account,
-        deployWalletValue: '150000000',
-        remainingGasTo: state.account,
-        notify: false,
-        payload: ""
-      }).send({
-        from: state.account,
-        amount: '300000000',
-      })
-      return new Promise((resolve, reject) => {
-        promise.then(async (firstTx) => {
-          const subscriber = new state.provider.Subscriber();
-          await subscriber.trace(firstTx).tap(tx_in_tree => {
-            // nothing
-          }).finished();
-          resolve();
-        }).catch(reject)
-      })
     },
     claimTiles({state, commit}, {x, y, width, height, tiles, description, url}) {
       if (state.account === null) {
@@ -504,41 +526,50 @@ export const Provider = {
         return;
       }
 
-      let price = width * height * 1000000000;
-
-      return encodeMintPayload(state.provider,{
+      let collection = new state.provider.Contract(CollectionAbi, CollectionAddress);
+      const promise = collection.methods.claimTiles({
         "pixelStartX": x,
         "pixelStartY": y,
         "pixelEndX": x + width,
         "pixelEndY": y + height,
         "tilesToColorify": tiles,
-        "description": description || 'Test description',
-        "url": url || 'https://google.com',
-        "coinsToRedrawOneTile" : (ColorifyOneTilePrice * 1_000_000_000).toString()
-      }).then(function(paylaod) {
-        return state.tokenWalletContract.methods.transfer({
-          amount: price,
-          recipient: CollectionAddress,
-          deployWalletValue: '0',
-          remainingGasTo: state.account,
-          notify: true,
-          payload: paylaod
-        }).send({
-          from: state.account,
-          amount: Math.floor((width / 10 * height / 10 * ColorifyOneTilePrice + OneNftMintingCost + MaximumClaimGasPrice + MaximumFwdFeeForBigMint) * 1_000_000_000).toString(),
-        })
+        "description": description || '',
+        "url": url || '',
+        "coinsToRedrawOneTile" : Math.floor(ColorifyOneTilePrice * 1_000_000_000).toString()
+      }).send({
+        from: state.account,
+        amount: Math.floor( width * height / 100 * parseInt(state.currentTilePrice) + (width * height / 100 * ColorifyOneTilePrice + MaximumFwdFeeForBigMint + OneNftMintingCost + MaximumClaimGasPrice) * 1_000_000_000).toString(),
       }).then(firstTx => {
         return new Promise(async (resolve, reject) => {
+          let nftMinted = false;
+          let txs = [];
           const subscriber = new state.provider.Subscriber();
           await subscriber.trace(firstTx).tap(tx_in_tree => {
-            // nothing
+            if (tx_in_tree.account.equals(CollectionAddress)) {
+              txs.push(tx_in_tree);
+            }
           }).finished();
-          resolve();
+          for (let tx of txs) {
+            let events = await state.collectionContract.decodeTransactionEvents({ transaction: tx });
+            for (let event of events) {
+                if (event.event === 'NftMinted') {
+                  nftMinted = true;
+                  fetchUserNft(event.data.nftId, state.nftTvc, event.data.owner, state.provider, commit);
+                }
+            }
+          }
+          if (nftMinted) {
+            resolve();
+          } else {
+            reject(new Error('Nft not minted :-(. Price changed or space occupied.'));
+          }
         })
       })
+      return promise;
     },
     redrawNft({state, commit}, {id, x, y, width, height, tiles, description, url}) {
-      return state.collectionContract.methods.nftAddress({answerId: 0, id: id}).call({responsible: true, cachedState: state.collectionCachedState}).then(function(answer) {
+      let collection = new state.provider.Contract(CollectionAbi, CollectionAddress);
+      return collection.methods.nftAddress({answerId: 0, id: id}).call({responsible: true, cachedState: state.collectionCachedState}).then(function(answer) {
         const nftContract = new state.provider.Contract(NftAbi, answer.nft);
         return nftContract.methods.colorify({
           "tilesToColorify": tiles,
@@ -560,53 +591,46 @@ export const Provider = {
         })
       })
     },
+    burnNft({state, commit}, id) {
+      return state.provider.getStateInit(NftAbi, {
+        workchain: 0,
+        tvc: state.nftTvc,
+        initParams: {
+          _id: id
+        }
+      }).then(function(data) {
+        let nftContract = new state.provider.Contract(NftAbi, data.address);
+        return nftContract.methods.burnNft({}).send({
+          from: state.account,
+          amount: (BurnNftValue * 1_000_000_000).toString(),
+        }).then(function(firstTx) {
+          commit('removeUserNft', id);
+        })
+      })
+    },
     fetchNftData({state, commit}, {id}) {
+      if (nftBanList.indexOf(id) !== -1) {
+        return;
+      }
       if (!state.nftDataById[id] && state.standaloneProvider && state.collectionCachedState) {
         commit('setNftDataLoadingInProgress', id);
-        state.collectionContract.methods.nftAddress({
-          id: id,
-          answerId: 0
-        }).call({
-          responsible: true,
-          cachedState: state.collectionCachedState
-        }).then(answer => {
-          let nftContract = new state.standaloneProvider.Contract(NftAbi, answer.nft);
+        state.standaloneProvider.getStateInit(NftAbi, {
+          workchain: 0,
+          tvc: state.nftTvc,
+          initParams: {
+            _id: id
+          }
+        }).then(function(data) {
+          let nftContract = new state.standaloneProvider.Contract(NftAbi, data.address);
           return nftContract.methods.getNftCustomData({
             answerId: 0
           }).call({
             responsible: true
           })
-          // console.log(answer);
         }).then(nftAnswer => {
           commit('setNftData', {id, description: nftAnswer.description, url: nftAnswer.url})
         })
       }
     }
   },
-}
-
-
-async function encodeMintPayload(provider, payload) {
-  return (await provider.packIntoCell({
-    data: {
-      pixelStartX: payload.pixelStartX,
-      pixelStartY: payload.pixelStartY,
-      pixelEndX: payload.pixelEndX,
-      pixelEndY: payload.pixelEndY,
-      tilesToColorify: payload.tilesToColorify,
-      description: payload.description,
-      url: payload.url,
-      coinsToRedrawOneTile: payload.coinsToRedrawOneTile
-    },
-    structure: [
-      {name: 'pixelStartX', type: 'uint10'},
-      {name: 'pixelStartY', type: 'uint10'},
-      {name: 'pixelEndX', type: 'uint10'},
-      {name: 'pixelEndY', type: 'uint10'},
-      {"components":[{"name":"r","type":"uint80[]"},{"name":"g","type":"uint80[]"},{"name":"b","type":"uint80[]"}],"name":"tilesToColorify","type":"tuple[]"},
-      {name: 'description', type: 'string'},
-      {name: 'url', type: 'string'},
-      {name: 'coinsToRedrawOneTile', type: 'uint128'}
-    ],
-  })).boc;
 }

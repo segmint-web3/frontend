@@ -2,12 +2,13 @@
   <div class="header-wrapper">
     <div class="flex">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
+      <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
       <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
     </div>
     <div class="description">
-      <span>$1 per pixel</span>
+      <span>Page {{epoch}}</span>
       <div class="dot"></div>
-      <span>Own a piece of web3 history!</span>
+      <span>{{pixelPrice}} venom per pixel</span>
     </div>
     <div v-if="!$store.state.Provider.account" class="wallet-connect">
       <button class="primary-button connect" @click="connect">Connect wallet</button>
@@ -29,7 +30,7 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
-  props: ['openMyNfts'],
+  props: ['openMyNfts', 'isEditingMode', 'toggleEditingMode'],
   computed: {
     address() {
       let str = this.$store.state.Provider.account._address;
@@ -37,6 +38,13 @@ export default {
     },
     balance() {
       return this.$store.state.Provider.venomBalance;
+    },
+    epoch() {
+      return this.$store.state.Provider.epoch;
+    },
+    pixelPrice() {
+      let pixelPrice = parseInt(this.$store.state.Provider.currentTilePrice)/100_000_000_000;
+      return (pixelPrice).toString()
     }
   },
   methods: {
@@ -58,7 +66,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-height: 100px;
+  max-height: 92px;
   padding: 10px 150px;
   box-sizing: border-box;
   background: #7000FF;
@@ -76,7 +84,13 @@ export default {
     height: 70px;
     margin-right: 20px;
 }
+.mode-button {
+  width: 150px;
+  padding: 5px 10px;
+}
+
 .nft-button {
+  margin-left: 10px;
   width: 150px;
   padding: 5px 10px;
 }

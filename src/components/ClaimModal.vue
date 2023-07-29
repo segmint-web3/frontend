@@ -8,18 +8,29 @@
       <div class=" flex claim-modal-content">
         <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
         <div v-if="!canBeClaimed" class="instructions">
-            Please upload a picture {{this.width}}x{{this.height}}px.
+          Please upload a picture {{this.width}}x{{this.height}}px.
         </div>
         <div v-else class="instructions">
-            You have selected a {{this.width}}x{{this.height}}px segment
+          You have selected a {{this.width}}x{{this.height}}px segment
         </div>
         <label for="assetsFieldHandle" class="file-upload">
           <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
-              @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
+                 @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
           <button class="transparent-button">Select Image</button>
         </label>
         <div v-show="canBeClaimed" :style="canvasContainerStyles" class="canvasContainer">
           <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
+        </div>
+        <div  v-show="canBeClaimed" class='slider'>
+          <label :class="{selected: resizeMode === 'cover'}" @click='setResizeMode("cover")'>
+            <div>Cover</div>
+          </label>
+          <label :class="{selected: resizeMode === 'contain'}" @click='setResizeMode("contain")'>
+            <div>Contain</div>
+          </label>
+          <label :class="{selected: resizeMode === 'fill'}" @click='setResizeMode("fill")'>
+            <div>Fill</div>
+          </label>
         </div>
         <form v-if="canBeClaimed">
           <div class="flex description">
@@ -32,7 +43,7 @@
           </div>
           <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
-            {{$props.id ? 'Edit segment' : `Mint for $${this.width * this.height}`}}
+            {{$props.id ? 'Edit segment' : `Mint for ${this.mintingPrice} V`}}
           </button>
         </form>
         <div v-if='claimInProgress' class="claim-in-progress">
@@ -46,11 +57,14 @@
 
 <script>
 import {encodePixelsToTileColor} from "@/utils/pixels";
+import Blitz from 'blitz-resize';
 
 export default {
   name: 'ClaimModal',
   data: function () {
     return {
+      image: null,
+      resizeMode: 'cover',
       coloredTiles: [],
       claimInProgress: false,
       description: '',
@@ -59,13 +73,19 @@ export default {
       linkValid: true
     }
   },
-  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onclose'],
+  props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onerror', 'onclose'],
   computed: {
     canBeClaimed: function() {
       return this.coloredTiles.length > 0;
     },
     canvasContainerStyles: function () {
-      if (this.$props.width > 60 || this.$props.height > 60) {
+      if (this.$props.width > 300 || this.$props.height > 300) {
+        return {
+          margin: 'auto',
+          width: `${this.$props.width}px`,
+          height: `${this.$props.height}px`
+        }
+      } else if (this.$props.width > 60 || this.$props.height > 60) {
         return {
           margin: 'auto',
           width: `${this.$props.width * 2}px`,
@@ -78,53 +98,117 @@ export default {
         height: `${this.$props.height * 4}px`
       }
     },
-    headerText(){
+    headerText()  {
       if (this.canBeClaimed) {
         if (this.$props.id)
           return 'Editing';
         return "Minting";
       } else return "Choosing a picture";
+    },
+    mintingPrice() {
+      return (parseInt(this.$store.state.Provider.currentTilePrice) * (this.$props.width * this.$props.height / 100) / 1_000_000_000).toFixed(1);
     }
   },
   methods: {
-    onChange() {
-      // todo parse image
+    setResizeMode(mode) {
+      this.resizeMode = mode;
+      this.redraw();
+    },
+    redraw() {
       const ctx = this.$refs.canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;
-      const img = new Image;
       const width = this.$props.width;
       const height = this.$props.height;
-
       ctx.fillStyle = 'black';
       ctx.fillRect(0, 0, width, height);
-
-      this.coloredTiles = [];
       const tiles = [];
-      img.onload = function() {
-        const aspectRatio = img.width / img.height;
-        let drawWidth, drawHeight;
-        if (width / height > aspectRatio) {
-          drawHeight = height;
-          drawWidth = drawHeight * aspectRatio;
-        } else {
-          drawWidth = width;
-          drawHeight = drawWidth / aspectRatio;
+      const blitz = Blitz.create();
+
+      let params;
+      if (this.resizeMode === 'contain') {
+        params = {
+          source: this.image,
+          maxWidth: width,
+          maxHeight: height,
+          minWidth: width/2,
+          minHeight: height/2,
+          proportional: true,
+          output: 'image',
+          quality: 1
         }
-        const x = (width - drawWidth) / 2;
-        const y = (height - drawHeight) / 2;
-
-        ctx.drawImage(img, x, y, drawWidth, drawHeight);
-
+      } else if (this.resizeMode === 'cover') {
+        const aspectRatio = this.image.width / this.image.height;
+        const canvasAspectRatio = width / height;
+        if (canvasAspectRatio < aspectRatio) {
+          params = {
+            source: this.image,
+            width: Math.floor(height * aspectRatio),
+            height: height,
+            proportional: true,
+            output: 'image',
+            quality: 1
+          }
+        } else {
+          params = {
+            source: this.image,
+            width: width,
+            height: Math.floor(width / aspectRatio),
+            proportional: true,
+            output: 'image',
+            quality: 1
+          }
+        }
+      } else {
+        params = {
+          source: this.image,
+          width:  width,
+          height: height,
+          proportional: false,
+          output: 'image',
+          quality: 1
+        }
+      }
+      blitz(params).then((img) => {
+        if (this.resizeMode === 'contain') {
+          const aspectRatio = img.width / img.height;
+          let drawWidth, drawHeight;
+          if (width / height > aspectRatio) {
+            drawHeight = height;
+            drawWidth = drawHeight * aspectRatio;
+          } else {
+            drawWidth = width;
+            drawHeight = drawWidth / aspectRatio;
+          }
+          const x = (width - drawWidth) / 2;
+          const y = (height - drawHeight) / 2;
+          ctx.drawImage(img, x, y, img.width, img.height);
+        } else if (this.resizeMode === 'cover') {
+          if (img.width > width) {
+            ctx.drawImage(img, -1 * Math.floor((img.width - width)/2), 0, img.width, img.height);
+          } else {
+            ctx.drawImage(img, 0, -1 * Math.floor((img.height - height)/2), img.width, img.height);
+          }
+        } else {
+          ctx.drawImage(img, 0, 0, width, height);
+        }
         // encode image to array of tiles
         for (let tileY = 0; tileY < height/10; tileY++) {
           for (let tileX = 0; tileX < width/10; tileX++) {
-              const data = ctx.getImageData(tileX*10, tileY*10, 10, 10);
-              tiles.push(encodePixelsToTileColor(data.data))
+            const data = ctx.getImageData(tileX*10, tileY*10, 10, 10);
+            tiles.push(encodePixelsToTileColor(data.data))
           }
         }
         this.coloredTiles = tiles;
+      })
+    },
+    onChange() {
+      const img = new Image;
+      img.onload = function() {
+        this.image = img;
+        this.redraw();
       }.bind(this)
       img.src = URL.createObjectURL(this.$refs.file.files[0]);
+
     },
     claim(event) {
       event.preventDefault();
@@ -151,6 +235,10 @@ export default {
           }).catch((err) => {
             console.log(err);
             this.claimInProgress = false;
+            if (!this.$props.id && err.code !== 3) {
+              console.log('on error');
+              this.onerror(err.message);
+            }
           })
         }
       } else {
@@ -175,7 +263,7 @@ export default {
 
 <style scoped>
 .canvasContainer {
- margin-top: 10px !important;
+  margin-top: 10px !important;
 }
 canvas {
   image-rendering: pixelated;
@@ -205,7 +293,7 @@ canvas {
 }
 .modal-content {
   position: fixed;
-  top: 15%;
+  top: 10%;
   left: calc(50% - 166px);
   flex-direction: column;
   min-width: 300px;
@@ -310,4 +398,45 @@ form button {
 .error {
   color: red;
 }
+
+.slider {
+  width:100%;
+  margin-top: 10px;
+  box-sizing:border-box;
+  text-align:center;
+  position:relative;
+  border-radius:2px;
+}
+
+.slider::after {
+  content:"";
+  display:block;
+  clear:both;
+}
+
+.slider label {
+  float:left;
+  color: var(--primary);
+  //background: var(--violet);
+  width: calc(33.333% - 1px);
+  position:relative;
+  padding: 10px 0px 10px;
+  overflow:hidden;
+  transition:color 0.3s;
+  cursor:pointer;
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+  border: 2px solid var(--primary);
+  box-sizing: border-box;
+}
+
+.slider label input {
+  position:absolute;
+  top:-200%;
+}
+
+.slider label.selected {
+  color: var(--violet);
+  background: var(--primary);
+}
+
 </style>

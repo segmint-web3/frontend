@@ -1,21 +1,20 @@
 <template>
   <div class="wrapper">
-    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" @close="closeClaimModal"/>
-    <mint-tokens-modal name='mint-tokens-modal' :amount="selectedPriceUSD" :onsuccess="onMintTokenModalSuccess" @close="closeMintTokensModal"/>
-    <div class="canvas-container" @click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
+    <message-modal name='canvas-message-modal' :message='errorMessage'/>
+    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
+    <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
+      <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
+      <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
+      <div class="hover-popup" :style="highLightPopupStyles">
+        {{highlightNftDescription}}
+      </div>
       <div :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}
       </div>
       <div :style="selectionStyles"></div>
       <div v-for="tile in badTiles" v-bind:key="tile.index">
-        <div v-if="selectedTilesCount > badTiles.length" :style="styleForBadTile(tile)" />
+        <div :style="styleForBadTile(tile)" />
       </div>
-      <div class="hover-popup" :style="highLightPopupStyles">
-        {{highlightNftDescription}}
-      </div>
-    <!-- <panZoom ref="panZoom" :options="zoomOptions" @init="onInit"> -->
-      <canvas ref="canvas" width="1000" height="1000"></canvas>
-    <!-- </panZoom> -->
       <br />
     </div>
     <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess" v-on:click="claim">
@@ -27,16 +26,19 @@
 
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
-import MintTokensModal from '@/components/MintTokensModal.vue';
-// import { fabric } from "fabric";
+import MessageModal from '@/components/MessageModal.vue'
+
+// import zoomMixin from "@/mixins/zoom"
 
 export default {
   name: 'CanvasComponent',
-  components: {ClaimModal, MintTokensModal},
-  props: {},
+  components: {ClaimModal, MessageModal},
+  // mixins: [zoomMixin],
+  props: ['isEditingMode'],
   data() {
     return {
       ctx: null,
+      ctxOld: null,
       imageData: null,
       isMobile: false,
       collectionLoaded: false,
@@ -50,13 +52,26 @@ export default {
       highLightNftId: null,
       lastMousePosX: 0,
       lastMousePosY: 0,
-      zoom: {scale: 1, x: 0, y: 0},
-      scale: 1
+      selectionTriedCounter: 0,
+      errorMessage: ''
     }
   },
   computed: {
+    hideOldCanvas: function() {
+      return this.isEditingMode || this.selectionTriedCounter > 0 || this.selectionInProcess;
+    },
+    oldCanvasStyles: function() {
+      if (this.hideOldCanvas) {
+        return {}
+      } else {
+        return {
+          visibility: 'visible',
+          opacity: 1,
+          transition: 'opacity 250ms ease-in, visibility 0ms ease-in 0ms'
+        };
+      }
+    },
     badTiles: function() {
-      // return []
       if (this.selectionStartX === null)
         return [];
       let sX = this.selectionStartX;
@@ -66,10 +81,9 @@ export default {
       let badSelectedTiles = [];
       for (let x = sX; x <= endX; x += 10) {
         for (let y = sY; y <= endY; y += 10) {
-          const index = Math.round(x * 10 + y/10);
+          const index = x * 10 + y/10;
           const tileInStore = this.$store.state.Provider.tilesByIndex[index];
-          console.log(this.$store.state.Provider, 'index', index, Math.round(index))
-          if (tileInStore.nftId !== '4294967295') {
+          if (tileInStore.epoch === this.$store.state.Provider.epoch && tileInStore.nftId !== '4294967295') {
             badSelectedTiles.push(tileInStore);
           }
         }
@@ -95,7 +109,7 @@ export default {
     },
     highLightPopupStyles: function() {
       // When we hover some nft, we show popup with text
-      if (this.highLightNftId) {
+      if (this.highLightNftId && !this.selectionInProcess) {
         const left = this.lastMousePosX > 600;
         return {
           top: `${this.lastMousePosY}px`,
@@ -119,15 +133,14 @@ export default {
     },
     selectionStyles: function () {
       // Style for dynamic selection
-      if (this.selectionStartX !== null && this.selectedTilesCount > this.badTiles.length) {
+      if (this.selectionStartX !== null) {
         return {
           position: 'absolute',
-          left: `${this.selectionStartX+this.zoom.x}px`,
-          top: `${this.selectionStartY+this.zoom.y}px`,
+          left: `${this.selectionStartX}px`,
+          top: `${this.selectionStartY}px`,
           width: `${this.selectionEndX - this.selectionStartX + 10}px`,
           height: `${this.selectionEndY - this.selectionStartY + 10}px`,
-          backgroundColor: 'rgba(204,255,0,0.5)',
-          'z-index': 10
+          backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
       return {
@@ -136,37 +149,34 @@ export default {
         top: 0,
         width: 0,
         height: 0,
-        backgroundColor: 'rgba(204,255,0,0.5)',
-        'z-index': 10
+        backgroundColor: 'rgba(204,255,0,0.5)'
       }
     },
     selectionHeaderStyle: function () {
-      if (this.selectionStartX !== null && this.selectedTilesCount > this.badTiles.length) {
-        if (this.selectionStartY+this.zoom.y > 100 ) {
+      if (this.selectionStartX !== null) {
+        if (this.selectionStartY > 100 ) {
           return {
             position: 'absolute',
-            left: `${(this.selectionStartX + this.selectionEndX + this.zoom.x)/2 - 30}px`,
-            top: `${this.selectionStartY+this.zoom.y - 25}px`,
+            left: `${(this.selectionStartX + this.selectionEndX)/2 - 30}px`,
+            top: `${this.selectionStartY - 25}px`,
             width: `60px`,
             height: `20px`,
             borderRadius: '5px',
             backgroundColor: 'yellow',
-            textAlign: 'center',
-            'z-index': 10
+            textAlign: 'center'
           }
           // Above selection
         } else {
           // Below selection
           return {
             position: 'absolute',
-            left: `${(this.selectionStartX + this.selectionEndX + this.zoom.x)/2 - 30}px`,
-            top: `${this.selectionEndY + this.zoom.y + 15}px`,
+            left: `${(this.selectionStartX + this.selectionEndX)/2 - 30}px`,
+            top: `${this.selectionEndY + 15}px`,
             width: `60px`,
             height: `20px`,
             borderRadius: '5px',
             backgroundColor: 'yellow',
-            textAlign: 'center',
-            'z-index': 10
+            textAlign: 'center'
           }
         }
       } else {
@@ -177,65 +187,27 @@ export default {
           top: 0,
           width: 0,
           height: 0,
-          backgroundColor: 'rgba(204,255,0,0.5)',
-          'z-index': 10
+          backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
-    },
-    zoomOptions(){
-      return {
-          minZoom: 0.8, 
-          maxZoom: 1.5,
-          bounds: true, 
-          boundsPadding: 0.1,
-          boundsDisabledForZoom: false,
-          beforeMouseDown: function(e) {
-            let shouldIgnore = !e.altKey;
-            return shouldIgnore;
-          }
-        }
     }
   },
   mounted() {
     this.ctx = this.$refs.canvas.getContext('2d');
-    // this.ctx = new fabric.Canvas(this.$refs.canvas);
-    this.imageData = this.ctx.createImageData(10*this.zoom.scale, 10*this.zoom.scale);
-    // if (this.$store.state.Provider.tiles.length > 0) {
-    //   this.redraw(this.$store.state.Provider.tiles);
-    // }
+    this.ctxOld = this.$refs.canvasOld.getContext('2d');
+    this.imageData = this.ctx.createImageData(10, 10);
     this.$store.subscribe((mutation) => {
-      if (mutation.type === 'Provider/setTiles') {
-        this.redraw(mutation.payload.tiles);
+      if (mutation.type === 'Provider/setCollection') {
+        this.redraw(mutation.payload.tilesByIndex, this.$store.state.Provider.epoch);
       } else if (mutation.type === 'Provider/setTile') {
-        this.drawTile(mutation.payload.tile);
+        this.drawTile(mutation.payload.tile, this.$store.state.Provider.epoch);
+      } else if (mutation.type === 'Provider/setEpoch') {
+        // Epoch is changed, redraw everything
+        this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
       }
     })
-    this.$refs.canvas.addEventListener('wheel', (event) => {
-      event.preventDefault();
-      const delta = Math.sign(event.deltaY);
-      this.scale += delta * 0.1;
-      console.log(this.scale, 'wheel', event)
-      // this.ctx.scale(this.scale, this.scale);
-      this.ctx.setTransform(this.scale, 1, 2, this.scale, 2, 10);
-    });
   },
   methods: {
-    // onInit: function(panzoomInstance) {
-    //   panzoomInstance.on('zoom', (e) => {
-    //     this.zoom = e.getTransform();
-    //     console.log(e, this.zoom, e.getTransform());
-    //   });
-      // panzoomInstance.on('mousemove', (e) => {
-      //   let matirx = this.$refs.panZoom.$panZoomInstance.getTransformMatrix();
-      //   let parentOffset = this.$refs.canvas.getBoundingClientRect();
-
-      //   let temp = {};
-      //   temp.x = (e.pageX - parentOffset.left) / matirx.scale;
-      //   temp.y = (e.pageY - parentOffset.top) / matirx.scale;
-      //   //console.log("S: " + matirx.scale + ", tX: " + matirx.transX + ", tY: " + matirx.transY + ", pX: " + e.pageX + ", pY: " + e.pageY + ", left: " + parentOffset.left + ", top: " + parentOffset.top);
-      //   return temp;
-      // });
-    // },
     clearSelection() {
       this.selectionInProcess = false;
       this.selectionStartX = null;
@@ -243,15 +215,26 @@ export default {
       this.selectionEndX = null;
       this.selectionEndY = null;
     },
-    drawTile(tile) {
-      this.imageData.data.set(tile.pixels)
-      this.ctx.putImageData(this.imageData, tile.x, tile.y);
-    },
-    redraw(tiles) {
-      // TODO do not redraw everything
-      for (let tile of tiles) {
-        this.imageData.data.set(tile.pixels)
+    drawTile(tile, epoch) {
+      this.imageData.data.set(tile.pixels);
+      if (tile.epoch === epoch) {
         this.ctx.putImageData(this.imageData, tile.x, tile.y);
+        this.ctxOld.clearRect(tile.x, tile.y, 10, 10);
+      } else {
+        this.ctxOld.putImageData(this.imageData, tile.x, tile.y);
+      }
+    },
+    redraw(tiles, epoch) {
+      // TODO do not redraw everything
+      this.ctx.clearRect(0, 0, 1000, 1000);
+      this.ctxOld.clearRect(0, 0, 1000, 1000);
+      for (let key in tiles) {
+        this.imageData.data.set(tiles[key].pixels);
+        if (tiles[key].epoch === epoch) {
+          this.ctx.putImageData(this.imageData, tiles[key].x, tiles[key].y);
+        } else {
+          this.ctxOld.putImageData(this.imageData, tiles[key].x, tiles[key].y);
+        }
       }
       this.collectionLoaded = true;
     },
@@ -262,19 +245,29 @@ export default {
         position: 'absolute',
         left: `${tile.x}px`,
         top: `${tile.y}px`,
-        width: `${10*this.zoom.scale}px`,
-        height: `${10*this.zoom.scale}px`,
+        width: `10px`,
+        height: `10px`,
         backgroundColor: 'red'
       }
     },
     onMouseDown(event) {
-       if (this.isMobile || !this.collectionLoaded)
+      if (this.isMobile || !this.collectionLoaded)
         return;
+
+      // this is tricky to show empty tiles
+      setTimeout(() => {
+        if (this.selectionInProcess) {
+          this.selectionTriedCounter += 1;
+          setTimeout(() => {
+            this.selectionTriedCounter -= 1;
+          }, 5000);
+        }
+      }, 200);
+
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
-      let xPos = Math.floor((event.clientX - canvasRect.left)/10*this.zoom.scale)*10*this.zoom.scale;
-      let yPos = Math.floor((event.clientY - canvasRect.top)/10*this.zoom.scale)*10*this.zoom.scale;
-      // console.log(this.$refs.panZoom.$panZoomInstance.getTransform(), 'transform', canvasRect, 'rect', xPos, 'x', yPos, 'y')
-      if (xPos < 0 || xPos > 990 * this.zoom.scale || yPos < 0 || yPos > 990 * this.zoom.scale)
+      let xPos = Math.floor((event.clientX - canvasRect.left)/10)*10;
+      let yPos = Math.floor((event.clientY - canvasRect.top)/10)*10;
+      if (xPos < 0 || xPos > 990 || yPos < 0 || yPos > 990)
         return;
       this.selectionInProcess = true;
       this.selectionStartX = xPos;
@@ -300,9 +293,9 @@ export default {
         // highlight popup logic
         this.lastMousePosX = coordX;
         this.lastMousePosY = coordY;
-        const index = Math.round(xPos * 10 + yPos/10);
+        const index = xPos * 10 + yPos/10;
         const tileInStore = this.$store.state.Provider.tilesByIndex[index];
-        if (tileInStore && tileInStore.nftId !== '4294967295' && tileInStore.nftId !== this.highLightNftId) {
+        if (tileInStore && tileInStore.nftId !== '4294967295' && tileInStore.nftId !== this.highLightNftId && (!this.hideOldCanvas || tileInStore.epoch === this.$store.state.Provider.epoch)) {
           this.highLightNftId = tileInStore.nftId;
           setTimeout(() => {
             if (this.highLightNftId === tileInStore.nftId) {
@@ -316,12 +309,12 @@ export default {
       }
 
       // Some tricky logic to keep max selected piece in range 0..10000 pixels
-      if (xPos <= this.selectionEndX){
+      if (xPos <= this.selectionEndX) {
         this.selectionEndX = Math.max(xPos, this.selectionStartX);
       } else {
         while (xPos > this.selectionEndX) {
           let newTilesCount = (this.selectionEndX - this.selectionStartX + 20) * (this.selectionEndY - this.selectionStartY + 10);
-          if (newTilesCount <= 10000) {
+          if (newTilesCount <= 9000) {
             this.selectionEndX += 10
           } else {
             break;
@@ -333,7 +326,7 @@ export default {
       } else {
         while (yPos > this.selectionEndY) {
           let newTilesCount = (this.selectionEndX - this.selectionStartX + 10) * (this.selectionEndY - this.selectionStartY + 20);
-          if (newTilesCount <= 10000) {
+          if (newTilesCount <= 9000) {
             this.selectionEndY += 10;
           } else {
             break;
@@ -349,10 +342,9 @@ export default {
 
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
         if (nft && nft.url) {
-          setTimeout(() => {
-            window.open(nft.url, '_blank');
-          })
+          window.open(nft.url, '_blank');
         }
+
       }
       if (this.badTiles.length > 0) {
         this.clearSelection();
@@ -371,9 +363,9 @@ export default {
       if (!this.isMobile || !this.collectionLoaded) {
         return;
       }
+
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
       //Logic to select the tiles to claim.
-      console.log(canvasRect, 'canvasRect', event.clientX, 'x', event.clientY, 'y')
       let xPos = event.clientX - canvasRect.left;
       let yPos = event.clientY - canvasRect.top;
 
@@ -414,6 +406,7 @@ export default {
         }
       }
 
+      console.log('no error?')
       // Check is there is no empty tiles in selection
       const notEmptyTilesInSelection = this.tiles.filter(t =>
           t.nftId !== '4294967295' &&
@@ -448,12 +441,7 @@ export default {
     },
     claim() {
       if (this.$store.state.Provider.account) {
-        if (this.selectedPriceUSD > this.$store.state.Provider.tokenWalletBalance) {
-          this.$modal.show('mint-tokens-modal');
-        } else {
-          console.log('open-modal')
-          this.$modal.show('claim-modal');
-        }
+        this.$modal.show('claim-modal');
       } else {
         this.$store.dispatch('Provider/connect');
       }
@@ -462,16 +450,13 @@ export default {
       this.clearSelection();
       this.$modal.hide('claim-modal');
     },
-    closeClaimModal(){
-      console.log('closeClaimModal');
+    onClaimModalError(errorMessage) {
+      this.errorMessage = errorMessage;
       this.$modal.hide('claim-modal');
+      this.$modal.show('canvas-message-modal');
     },
-    onMintTokenModalSuccess() {
-      this.$modal.hide('mint-tokens-modal');
-      this.$modal.show('claim-modal');
-    },
-    closeMintTokensModal(){
-      this.$modal.hide('mint-tokens-modal');
+    closeClaimModal(){
+      this.$modal.hide('claim-modal');
     },
   }
 }
@@ -490,17 +475,43 @@ export default {
   user-select: none;
 }
 
-canvas {
+.main-canvas {
   user-select: none;
-  width: 1000px;
-  height: 1000px;
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
   background-image: repeating-linear-gradient(#7000FF 0 1px, transparent 1px 100px), repeating-linear-gradient(90deg, #7000FF 0 1px, transparent 1px 100px);
   background-size: 10px 10px;
   background-color: #21004B;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
 }
+
+.old-canvas {
+  user-select: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 250ms ease-in, visibility 0ms ease-in 250ms;
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  0% { opacity: 1%; }
+  100% { opacity: 0; }
+}
+
 
 .mint-button {
   position: fixed;
