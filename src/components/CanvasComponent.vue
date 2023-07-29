@@ -342,7 +342,10 @@ export default {
 
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
         if (nft && nft.url) {
-          window.open(nft.url, '_blank');
+          const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+          if (urlPattern.test(nft.url)) {
+            window.open(nft.url, '_blank');
+          }
         }
 
       }
