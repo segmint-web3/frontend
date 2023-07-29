@@ -68,13 +68,6 @@ export default {
   margin: 0 20px;
   text-align: left;
 }
-@media only screen and (min-width: 500px) {
-  .modal-content {
-    top: 15%;
-    left: calc(50% - 250px);
-    width: 500px;
-  }
-}
 .modal-content {
   position: fixed;
   top: 15%;
@@ -85,6 +78,14 @@ export default {
   border: 10px solid #7000FF;
   color: #CCFF00;
   box-sizing: border-box;
+}
+
+@media only screen and (min-width: 500px) {
+  .modal-content {
+    top: 15%;
+    left: calc(50% - 250px);
+    width: 500px;
+  }
 }
 
 @media only screen and (max-width: 500px) {
