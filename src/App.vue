@@ -7,6 +7,12 @@
       <div>
         <h1>Loading collection</h1>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
+        <h2 class='fun-fact'>Fact of the day: <br /> <br /> Segmint is a pure web3 app. We don't use third-party services or IPFS. We store all data on the blockchain and only read from the blockchain.</h2>
+      </div>
+    </div>
+    <div v-if='isMintDisabled' class='loading-fullscreen'>
+      <div>
+        <h1>We under maintenance :-(</h1>
       </div>
     </div>
   </div>
@@ -34,6 +40,9 @@ export default {
   computed: {
     isCollectionLoaded() {
       return this.$store.state.Provider.collectionLoaded;
+    },
+    isMintDisabled() {
+      return this.$store.state.Provider.mintDisabled;
     }
   },
   mounted() {
@@ -86,5 +95,9 @@ html, body {
   justify-content: space-around;
   text-align: center;
   align-items: center;
+}
+.fun-fact {
+  max-width: 400px;
+  padding: 10px;
 }
 </style>

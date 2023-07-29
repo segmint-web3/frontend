@@ -103,13 +103,17 @@ async function loadCollection(provider, commit) {
               }
             }
           } else if (event.event === 'MintDisabledChanged') {
-            if (stateLoaded) {
-              commit('Provider/setMintDisabled', event.data.newValue);
-            } else {
-              updatesToAddAfterStateIsLoaded.push({
-                type: 'Provider/setMintDisabled',
-                data: event.data.newValue
-              })
+            // We catch only newValue = true, because user must refresh the page
+            // to start claim again
+            if (event.data.newValue) {
+              if (stateLoaded) {
+                commit('Provider/setMintDisabled', event.data.newValue);
+              } else {
+                updatesToAddAfterStateIsLoaded.push({
+                  type: 'Provider/setMintDisabled',
+                  data: event.data.newValue
+                })
+              }
             }
           } else if (event.event === 'EpochChanged') {
             if (stateLoaded) {
@@ -197,7 +201,6 @@ async function loadCollection(provider, commit) {
 
     // rollup pending events
     for (let event of updatesToAddAfterStateIsLoaded) {
-      console.log('pending events');
       commit(event.type, event.data);
     }
     console.log('Parsed', ((Date.now() - seconds)/1000).toFixed(1));
@@ -307,7 +310,7 @@ export const Provider = {
     nftTvc: undefined,
     epoch: 0,
     currentTilePrice: 0,
-    mintEnabled: true,
+    mintDisabled: false,
     tilesByIndex: {},
     nftDataById: {},
   },

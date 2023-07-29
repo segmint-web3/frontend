@@ -217,7 +217,7 @@ export default {
       const description = this.description;
       const url = this.link;
       const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
-      if(urlPattern.test(url.trim().toLowerCase()) || (url.length > 0 && url.split(' ').length === 1 && url.indexOf('.') !== -1)) {
+      if(urlPattern.test(url.trim().toLowerCase()) || (url.length > 0 && url.trim().split(' ').length === 1 && url.indexOf('.') !== -1)) {
         this.linkValid = true;
         let promise;
         if (this.$props.id) {

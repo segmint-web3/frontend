@@ -127,9 +127,10 @@ export default {
       let mapping = this.$store.state.Provider.nftDataById;
       let nft = mapping[this.highLightNftId];
       if (nft) {
-        return nft.description;
+        return nft.description || 'No description :-(';
+      } else {
+        return 'Loading description...'
       }
-      return '';
     },
     selectionStyles: function () {
       // Style for dynamic selection
@@ -347,7 +348,6 @@ export default {
             window.open(nft.url, '_blank');
           }
         }
-
       }
       if (this.badTiles.length > 0) {
         this.clearSelection();
