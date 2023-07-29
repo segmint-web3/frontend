@@ -3,19 +3,13 @@
     <div class="flex modal-content">
       <div class=" flex message-modal-content">
         <div class="instructions">
-          <h2>How it works</h2>
-          <h5>
-            On Segmint you can colorify pixels on public board to get NFT
-            <br />
-            <br />
-            Each time the board is nearly full the next season begins.  And users will claim pixels over the old canvas
-            <br />
-            <br />
-            If your NFT is completely painted over, you can burn it and get your tokens back. Every season the price goes up linearly
-            <br />
-            <br />
-            Your nft can be locked in case of inappropriate content
-          </h5>
+          <h2 class="instructions-title">How it works</h2>
+          <div>
+            <p> On Segmint you can colorify pixels on public board to get NFT</p>
+            <p>Each time the board is nearly full the next season begins.  And users will claim pixels over the old canvas</p>
+            <p>If your NFT is completely painted over, you can burn it and get your tokens back. Every season the price goes up linearly</p>
+            <p>Your nft can be locked in case of inappropriate content</p>
+          </div>
         </div>
         <button class="primary-button" v-on:click="this.close">
           OK
@@ -67,6 +61,13 @@ export default {
   font-size: 24px;
   margin: 0 20px 20px;
   text-align: left;
+}
+.primary-button {
+  padding: 5px 50px;
+  margin-bottom: 20px;
+}
+.instructions-title {
+  margin: 20px 0;
 }
 @media only screen and (min-width: 500px) {
   .modal-content {

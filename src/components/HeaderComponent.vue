@@ -1,16 +1,19 @@
 <template>
   <div class="header-wrapper">
-    <div class="flex header-wide">
+    <div class="header-wide">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
+      <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
+      <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
       <a href="#" class="secondary-button faq-button" @click='$props.openFaq'>Rules</a>
-      <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
-      <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
     </div>
-    <div class="flex header-mobile">
+    <div class="header-mobile">
+      <img :src="`${publicPath}icons/menu.svg`" alt="menu" class="menu" @click="toggleMobileMenu">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
-      <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
-      <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
-      <a href="#" class="secondary-button faq-button" @click='$props.openFaq'>How To</a>
+      <div v-if="menuOpened" class="mobile-buttons">
+        <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
+        <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
+        <a href="#" class="secondary-button faq-button" @click='$props.openFaq'>Rules</a>
+      </div>
     </div>
     <div v-if="!$store.state.Provider.account" class="wallet-connect">
       <button class="primary-button connect" @click="connect">Connect wallet</button>
@@ -29,7 +32,8 @@ export default {
   name: 'HeaderComponent',
   data () {
     return {
-      publicPath: process.env.BASE_URL
+      publicPath: process.env.BASE_URL,
+      menuOpened: false,
     }
   },
   props: ['openMyNfts', 'openFaq', 'isEditingMode', 'toggleEditingMode'],
@@ -56,6 +60,9 @@ export default {
     disconnect(){
       this.$store.dispatch('Provider/disconnect');
     },
+    toggleMobileMenu(){
+      this.menuOpened = !this.menuOpened;
+    }
   }
 }
 </script>
@@ -68,7 +75,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-height: 92px;
+  height: 90px;
   padding: 10px 150px;
   box-sizing: border-box;
   background: #7000FF;
@@ -77,26 +84,6 @@ export default {
   border-bottom: solid 2px #CCFF00;
 }
 
-@media only screen and (max-width: 900px) {
-  .header-wide {
-    display: none !important;;
-  }
-}
-.header-mobile {
-  display: none !important;
-}
-@media only screen and (max-width: 900px) {
-  .header-wide {
-    display: flex !important;;
-  }
-}
-
-
-@media screen and (max-width: 1280px){
-  .header-wrapper {
-    padding: 10px 50px;
-  }
-}
 .logo {
     height: 70px;
     margin-right: 20px;
@@ -104,7 +91,7 @@ export default {
 .mode-button {
   width: 150px;
   padding: 5px 10px;
-  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .nft-button {
@@ -113,7 +100,7 @@ export default {
 }
 
 .faq-button {
-  margin-right: 10px;
+  margin-left: 10px;
   width: 100px;
   padding: 5px 10px;
 }
@@ -143,5 +130,48 @@ export default {
 .coins {
   text-align: end;
   color: var(--primary);
+}
+@media screen and (max-width: 1280px){
+  .header-wrapper {
+    padding: 10px 50px;
+  }
+}
+.header-mobile {
+  display: none;
+  position: relative;
+}
+@media only screen and (max-width: 900px) {
+  .header-wide {
+    display: none;
+  }
+  .header-mobile {
+    display: flex;
+    align-items: center;
+  }
+  .header-wrapper {
+    padding: 10px 20px;
+  }
+}
+@media only screen and (min-width: 900px) {
+  .header-wide {
+    display: flex;
+    align-items: center;
+  }
+}
+.menu {
+  width: 50px;
+  height: 50px;
+}
+.mobile-buttons {
+  position: absolute;
+  top: 90px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  background: #7000FF;
+  padding: 10px;
+}
+.header-mobile .secondary-button {
+  margin: 5px 0;
 }
 </style>
