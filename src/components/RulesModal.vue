@@ -59,7 +59,7 @@ export default {
 .instructions {
   font-weight: 700;
   font-size: 24px;
-  margin: 0 20px 20px;
+  margin: 0 20px;
   text-align: left;
 }
 .primary-button {
@@ -69,11 +69,29 @@ export default {
 .instructions-title {
   margin: 20px 0;
 }
+.modal-content {
+  position: fixed;
+  top: 15%;
+  left: calc(50% - 170px);
+  flex-direction: column;
+  width: 340px;
+  background-color: #21004B;
+  border: 10px solid #7000FF;
+  color: #CCFF00;
+  box-sizing: border-box;
+}
+
 @media only screen and (min-width: 500px) {
   .modal-content {
     top: 15%;
     left: calc(50% - 250px);
     width: 500px;
+  }
+}
+
+@media only screen and (max-width: 500px) {
+  .instructions h5 {
+    font-size: 16px !important;
   }
 }
 </style>

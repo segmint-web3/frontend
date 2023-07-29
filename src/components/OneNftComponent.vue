@@ -125,12 +125,13 @@ export default {
     },
     redraw() {
       const ctx = this.$refs.canvas.getContext('2d');
+      ctx.clearRect(0, 0, this.$props.width, this.$props.height);
       const imageData = ctx.createImageData(10, 10);
       for (let x = this.$props.x; x < this.$props.x + this.$props.width; x += 10) {
         for (let y = this.$props.y; y < this.$props.y + this.$props.height; y += 10) {
           const index = x * 10 + y/10;
           const tileInStore = this.$store.state.Provider.tilesByIndex[index];
-          if (tileInStore) {
+          if (tileInStore && tileInStore.nftId  === this.$props.id) {
             imageData.data.set(tileInStore.pixels);
             ctx.putImageData(imageData, x - this.$props.x, y - this.$props.y);
           }
