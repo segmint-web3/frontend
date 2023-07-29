@@ -130,8 +130,8 @@ export default {
           source: this.image,
           maxWidth: width,
           maxHeight: height,
-          minWidth: width/2,
-          minHeight: height/2,
+          minWidth: width/3,
+          minHeight: height/3,
           proportional: true,
           output: 'image',
           quality: 1
@@ -181,7 +181,7 @@ export default {
           }
           const x = (width - drawWidth) / 2;
           const y = (height - drawHeight) / 2;
-          ctx.drawImage(img, x, y, img.width, img.height);
+          ctx.drawImage(img, x, y, drawWidth, drawHeight);
         } else if (this.resizeMode === 'cover') {
           if (img.width > width) {
             ctx.drawImage(img, -1 * Math.floor((img.width - width)/2), 0, img.width, img.height);
