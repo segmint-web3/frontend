@@ -12,7 +12,7 @@ import Vue from "vue";
 
 const CollectionAddress = new Address("0:091ab4602f7a9d3c9055995d299aad89a7a4fc851cb995560b6a74492f14bc9d");
 
-const ColorifyOneTilePrice = 0.017;
+const ColorifyOneTilePrice = 0.018;
 // wallet to collection 1, collection nft 0.5
 const MaximumFwdFeeForBigMint = 0.15;
 // 1 for deploy nft, 1 create nft,
