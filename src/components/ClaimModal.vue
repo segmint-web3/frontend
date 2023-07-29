@@ -35,11 +35,11 @@
         <form v-if="canBeClaimed">
           <div class="flex description">
             <label for="description">Title:</label>
-            <input v-model="description" type="text" id="description" class="input" maxlength="1000">
+            <input v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
           </div>
           <div class="flex link">
             <label for="link">Link:</label>
-            <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)">
+            <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
           </div>
           <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
@@ -126,13 +126,21 @@ export default {
 
       let params;
       if (this.resizeMode === 'contain') {
+        const imageAspectRatio = this.image.width / this.image.height;
+        const canvasAspectRatio = width / height;
+        let drawWidth, drawHeight;
+        if (imageAspectRatio > canvasAspectRatio) {
+          drawWidth = width;
+          drawHeight = width / imageAspectRatio;
+        } else {
+          // Отношение сторон изображения меньше или равно отношению сторон холста (узкое изображение)
+          drawWidth = height * imageAspectRatio;
+          drawHeight = height;
+        }
         params = {
           source: this.image,
-          maxWidth: width,
-          maxHeight: height,
-          minWidth: width/3,
-          minHeight: height/3,
-          proportional: true,
+          width: drawWidth,
+          height: drawHeight,
           output: 'image',
           quality: 1
         }
@@ -170,18 +178,9 @@ export default {
       }
       blitz(params).then((img) => {
         if (this.resizeMode === 'contain') {
-          const aspectRatio = img.width / img.height;
-          let drawWidth, drawHeight;
-          if (width / height > aspectRatio) {
-            drawHeight = height;
-            drawWidth = drawHeight * aspectRatio;
-          } else {
-            drawWidth = width;
-            drawHeight = drawWidth / aspectRatio;
-          }
-          const x = (width - drawWidth) / 2;
-          const y = (height - drawHeight) / 2;
-          ctx.drawImage(img, x, y, drawWidth, drawHeight);
+          const x = (width - img.width) / 2;
+          const y = (height - img.height) / 2;
+          ctx.drawImage(img, x, y, img.width, img.height);
         } else if (this.resizeMode === 'cover') {
           if (img.width > width) {
             ctx.drawImage(img, -1 * Math.floor((img.width - width)/2), 0, img.width, img.height);
@@ -218,13 +217,13 @@ export default {
       const description = this.description;
       const url = this.link;
       const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
-      if(urlPattern.test(url)) {
+      if(urlPattern.test(url.trim().toLowerCase()) || (url.length > 0 && url.split(' ').length === 1 && url.indexOf('.') !== -1)) {
         this.linkValid = true;
         let promise;
         if (this.$props.id) {
-          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.toLowerCase().trim()});
         } else {
-          promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url});
+          promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.toLowerCase().trim()});
         }
 
         if (promise) {

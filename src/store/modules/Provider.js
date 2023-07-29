@@ -525,7 +525,9 @@ export const Provider = {
         state.venomConnect.connect();
         return;
       }
-
+      if (url.toLowerCase().indexOf('http') !== 0) {
+        url = 'http://' + url;
+      }
       let collection = new state.provider.Contract(CollectionAbi, CollectionAddress);
       const promise = collection.methods.claimTiles({
         "pixelStartX": x,
@@ -569,6 +571,9 @@ export const Provider = {
     },
     redrawNft({state, commit}, {id, x, y, width, height, tiles, description, url}) {
       let collection = new state.provider.Contract(CollectionAbi, CollectionAddress);
+      if (url.toLowerCase().indexOf('http') !== 0) {
+        url = 'http://' + url;
+      }
       return collection.methods.nftAddress({answerId: 0, id: id}).call({responsible: true, cachedState: state.collectionCachedState}).then(function(answer) {
         const nftContract = new state.provider.Contract(NftAbi, answer.nft);
         return nftContract.methods.colorify({
