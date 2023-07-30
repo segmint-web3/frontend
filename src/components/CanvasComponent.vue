@@ -164,7 +164,6 @@ export default {
             top: `${this.selectionStartY - 25}px`,
             width: `60px`,
             height: `20px`,
-            borderRadius: '5px',
             backgroundColor: 'yellow',
             textAlign: 'center'
           }
@@ -177,7 +176,6 @@ export default {
             top: `${this.selectionEndY + 15}px`,
             width: `60px`,
             height: `20px`,
-            borderRadius: '5px',
             backgroundColor: 'yellow',
             textAlign: 'center'
           }
