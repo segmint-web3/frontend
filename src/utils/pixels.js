@@ -4,6 +4,26 @@ const WhiteTile = Array(10 * 10 * 4).fill(255);
 export function getWhitePixels() {
   return WhiteTile;
 }
+const BlackTile = Array(10 * 10 * 4).fill(255);
+for (let i = 0; i < BlackTile.length; i++) {
+  ((i + 1) % 4 !== 0) && (BlackTile[i] = 0);
+}
+export function getBlackPixels() {
+  return BlackTile;
+}
+
+export function getRandomPixels() {
+  let pixels = [];
+  for (let y = 0; y < 10; y ++) {
+    for (let x = 0; x < 10; x++) {
+      pixels.push(Math.floor(Math.random() * 255))
+      pixels.push(Math.floor(Math.random() * 255))
+      pixels.push(Math.floor(Math.random() * 255))
+      pixels.push(255)
+    }
+  }
+  return pixels;
+}
 export function covertTileColorToPixels(colors) {
   let pixels = [];
   for (let y = 0; y < 10; y++) {

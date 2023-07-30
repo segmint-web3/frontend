@@ -418,6 +418,11 @@ export const Provider = {
       // TODO validate url
       mapping[id] = {description: description.slice(0, 2000), url: url.slice(0, 2000)};
       state.nftDataById = mapping;
+    },
+    makeFireShow(state, {id}) {
+      console.log('makeFireShow', id);
+      // DO NOT DELETE
+      // We watch this event in CanvasComponent
     }
   },
   getters: {

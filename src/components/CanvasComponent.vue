@@ -29,6 +29,7 @@
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
 import MessageModal from '@/components/MessageModal.vue'
+import { getBlackPixels, getWhitePixels } from '@/utils/pixels'
 
 // import zoomMixin from "@/mixins/zoom"
 
@@ -204,6 +205,27 @@ export default {
       } else if (mutation.type === 'Provider/setEpoch') {
         // Epoch is changed, redraw everything
         this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
+      } else if (mutation.type === 'Provider/makeFireShow') {
+        let nft = this.$store.state.Provider.userNfts.find((nft) => nft.id === mutation.payload.id);
+        // Make fireshow
+        if (nft) {
+          for (let i = 0; i < 25; i++) {
+            setTimeout(() => {
+              for (let tX = nft.x/10; tX < (nft.x + nft.width)/10; tX++) {
+                for (let tY = nft.y/10; tY < (nft.y + nft.height)/10; tY++) {
+                  let index = tX * 100 + tY;
+                  if (this.$store.state.Provider.tilesByIndex[index].nftId === nft.id) {
+                    this.drawTile({
+                      x: tX * 10,
+                      y: tY * 10,
+                      pixels: i === 24 ? this.$store.state.Provider.tilesByIndex[index].pixels : (i % 2 === 0 ? getWhitePixels() : getBlackPixels())
+                    }, this.$store.state.Provider.epoch);
+                  }
+                }
+              }
+            }, i * 500);
+          }
+        }
       }
     })
   },
