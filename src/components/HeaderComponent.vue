@@ -10,9 +10,9 @@
       <img :src="`${publicPath}icons/menu.svg`" alt="menu" class="menu" @click="toggleMobileMenu">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
       <div v-if="menuOpened" class="mobile-buttons">
-        <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
-        <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
-        <a href="#" class="secondary-button faq-button" @click='$props.openFaq'>Rules</a>
+        <a href="#" class="secondary-button mode-button" @click='this.toggleEditingModeMobile'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
+        <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='this.openMyNftsMobile'>My NFT</a>
+        <a href="#" class="secondary-button faq-button" @click='this.openFaqMobile'>Rules</a>
       </div>
     </div>
     <div v-if="!$store.state.Provider.account" class="wallet-connect">
@@ -62,6 +62,18 @@ export default {
     },
     toggleMobileMenu(){
       this.menuOpened = !this.menuOpened;
+    },
+    openMyNftsMobile() {
+      this.menuOpened = false;
+      this.openMyNfts();
+    },
+    openFaqMobile() {
+      this.menuOpened = false;
+      this.openFaq();
+    },
+    toggleEditingModeMobile() {
+      this.menuOpened = false;
+      this.toggleEditingMode();
     }
   }
 }
