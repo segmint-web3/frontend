@@ -447,9 +447,8 @@ export default {
   top: 0;
   margin: 0;
   padding: 0;
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 250ms ease-in, visibility 0ms ease-in 250ms;
+  opacity: 0.3;
+  transition: opacity 250ms ease-in;
 }
 
 @keyframes fadeIn {
