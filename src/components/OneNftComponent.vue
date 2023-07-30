@@ -55,7 +55,7 @@ export default {
       }
     },
     scanLink: function() {
-      return `https://devnet.venomscan.com/accounts/${this.$props.address.toString()}`;
+      return `https://testnet.venomscan.com/accounts/${this.$props.address.toString()}`;
     },
     beautyValue: function() {
       return (parseInt(this.$props.lockedAmount)/1_000_000_000).toFixed(2)
