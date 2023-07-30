@@ -236,7 +236,6 @@ export default {
             this.claimInProgress = false;
             this.$props.onsuccess();
           }).catch((err) => {
-            console.log(err);
             this.claimInProgress = false;
             if (!this.$props.id && err.code !== 3) {
               console.log('on error');

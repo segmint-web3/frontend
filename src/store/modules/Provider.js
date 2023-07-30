@@ -553,7 +553,7 @@ export const Provider = {
         return new Promise(async (resolve, reject) => {
           let nftMinted = false;
           let txs = [];
-          const subscriber = new state.provider.Subscriber();
+          const subscriber = new state.standaloneProvider.Subscriber();
           await subscriber.trace(firstTx).tap(tx_in_tree => {
             if (tx_in_tree.account.equals(CollectionAddress)) {
               txs.push(tx_in_tree);
