@@ -7,6 +7,7 @@
     <div v-if='!isCollectionLoaded' class='loading-fullscreen'>
       <div>
         <h1>Loading collection</h1>
+        <h2>This might take a while</h2>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
         <h2 class='fun-fact'>Fact of the day: <br /> <br /> Segmint is a pure web3 app. We don't use third-party services or IPFS. We store all data on the blockchain and only read from the blockchain.</h2>
       </div>
