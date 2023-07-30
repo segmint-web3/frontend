@@ -42,7 +42,6 @@ export default {
       ctx: null,
       ctxOld: null,
       imageData: null,
-      isMobile: false,
       collectionLoaded: false,
       // to claim the tiles
       selectionInProcess: false,
@@ -252,7 +251,7 @@ export default {
       }
     },
     onMouseDown(event) {
-      if (this.isMobile || !this.collectionLoaded)
+      if (!this.collectionLoaded)
         return;
 
       // this is tricky to show empty tiles
@@ -305,7 +304,7 @@ export default {
       }
     },
     onMouseMove(event) {
-      if (this.isMobile || !this.collectionLoaded)
+      if (!this.collectionLoaded)
         return
 
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
@@ -364,7 +363,7 @@ export default {
       }
     },
     onMouseUp() {
-      if (this.isMobile || !this.collectionLoaded)
+      if (!this.collectionLoaded)
         return
       this.selectionInProcess = false;
       if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
@@ -382,8 +381,6 @@ export default {
       }
     },
     onMouseLeave() {
-      if (this.isMobile)
-        return
       if (this.selectionInProcess) {
         this.clearSelection();
       }
@@ -391,7 +388,7 @@ export default {
     },
     click(event) {
       // Need to test on mobile
-      if (!this.isMobile || !this.collectionLoaded) {
+      if (!this.collectionLoaded) {
         return;
       }
 
