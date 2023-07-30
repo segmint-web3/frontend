@@ -164,7 +164,8 @@ export default {
             top: `${this.selectionStartY - 25}px`,
             width: `60px`,
             height: `20px`,
-            backgroundColor: 'yellow',
+            backgroundColor: '#CCFF01',
+            color: '#21004B',
             textAlign: 'center'
           }
           // Above selection
@@ -176,7 +177,8 @@ export default {
             top: `${this.selectionEndY + 15}px`,
             width: `60px`,
             height: `20px`,
-            backgroundColor: 'yellow',
+            backgroundColor: '#CCFF01',
+            color: '#21004B',
             textAlign: 'center'
           }
         }
@@ -494,10 +496,10 @@ export default {
 }
 
 .hover-popup {
-  color: white;
+  color: #CCFF01;
   position: absolute;
   font-weight: bold;
   padding: 10px;
-  background-color: rgba(0,0,0,0.8);
+  background-color: #3B0087;
 }
 </style>

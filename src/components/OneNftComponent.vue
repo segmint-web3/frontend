@@ -214,6 +214,8 @@ canvas {
   margin-left: 5px;
 }
 .nft-info-button .burn-icon {
+  width: 15px;
+  height: 15px;
   margin-left: 5px;
 }
 .nft-subinfo-container {

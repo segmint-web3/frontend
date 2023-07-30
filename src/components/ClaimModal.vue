@@ -37,10 +37,12 @@
         </div>
         <form v-if="canBeClaimed">
           <div class="flex description">
+            <img :src="`${publicPath}icons/title.svg`" alt="title">
             <label for="description">Title:</label>
             <input v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
           </div>
           <div class="flex link">
+            <img :src="`${publicPath}icons/title.svg`" alt="link">
             <label for="link">Link:</label>
             <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
           </div>
@@ -331,6 +333,9 @@ form {
   flex-direction: column;
   margin-top: 20px;
 }
+.input {
+  min-width: 200px;
+}
 form label {
   width: 60px;
 }
@@ -356,24 +361,25 @@ form button {
   text-align: center;
   flex-direction: column;
   align-items: center;
-  font-size: 40px;
 }
 .claim-in-progress span {
   display: block;
+  font-size: 30px;
   width: 100%;
 }
 .lds-ring {
   display: inline-block;
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
+  margin-top: 20px;
 }
 .lds-ring div {
   box-sizing: border-box;
   display: block;
   position: absolute;
-  width: 64px;
-  height: 64px;
+  width: 44px;
+  height: 44px;
   margin: 8px;
   border: 8px solid var(--primary);
   border-radius: 50%;
