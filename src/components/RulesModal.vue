@@ -72,13 +72,25 @@ export default {
 .modal-content {
   position: fixed;
   top: 15%;
-  left: calc(50% - 170px);
+  left: 0;
   flex-direction: column;
-  width: 340px;
+  width: 100%;
   background-color: #21004B;
-  border: 10px solid #7000FF;
+  border: 5px solid #7000FF;
   color: #CCFF00;
   box-sizing: border-box;
+}
+
+@media only screen and (max-width: 500px) {
+  .modal-content {
+    top: 0;
+    bottom: 0;
+    flex: 1;
+    justify-content: center;
+  }
+  .modal-content p {
+    font-size: 20px;
+  }
 }
 
 @media only screen and (min-width: 500px) {
@@ -86,6 +98,7 @@ export default {
     top: 15%;
     left: calc(50% - 250px);
     width: 500px;
+    border: 10px solid #7000FF;
   }
 }
 
