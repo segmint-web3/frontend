@@ -2,7 +2,7 @@
   <div class="wrapper">
     <message-modal name='canvas-message-modal' :message='errorMessage'/>
     <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
-    <div class="canvas-container" v-on:click="click" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
+    <div class="canvas-container" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div class='canvas-stack'>
         <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
         <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
@@ -385,87 +385,6 @@ export default {
         this.clearSelection();
       }
       this.highLightNftId = null;
-    },
-    click(event) {
-      // Need to test on mobile
-      if (!this.collectionLoaded) {
-        return;
-      }
-
-      const canvasRect = this.$refs.canvas.getBoundingClientRect();
-      //Logic to select the tiles to claim.
-      let xPos = event.clientX - canvasRect.left;
-      let yPos = event.clientY - canvasRect.top;
-
-      let tileX = Math.floor(xPos / 10) * 10;
-      let tileY = Math.floor(yPos / 10) * 10;
-
-      if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY) {
-        let prevState = {
-          selectionStartX: this.selectionStartX,
-          selectionStartY: this.selectionStartY,
-          selectionEndX: this.selectionEndX,
-          selectionEndY: this.selectionEndY
-        }
-        this.selectionStartX = Math.min(tileX, prevState.selectionStartX);
-        this.selectionStartY = Math.min(tileY, prevState.selectionStartY);
-        this.selectionEndX = Math.max(tileX, prevState.selectionEndX);
-        this.selectionEndY = Math.max(tileY, prevState.selectionEndY);
-      } else {
-        this.selectionStartX = tileX;
-        this.selectionStartY = tileY;
-        this.selectionEndX = tileX;
-        this.selectionEndY = tileY;
-      }
-
-      // Maximum one time claim is 100 tiles - 10000 pixels
-      // So crop big selections
-      while ((this.selectionEndX - this.selectionStartX + 10) * (this.selectionEndY - this.selectionStartY + 10) > 10000) {
-        // Funny random
-        // Todo, think about better crop
-        if (Math.random() > 0.5) {
-          if (this.selectionEndX > this.selectionStartX) {
-            this.selectionEndX -= 10;
-          }
-        } else {
-          if (this.selectionEndY > this.selectionStartY) {
-            this.selectionEndY -= 10;
-          }
-        }
-      }
-
-      console.log('no error?')
-      // Check is there is no empty tiles in selection
-      const notEmptyTilesInSelection = this.tiles.filter(t =>
-          t.nftId !== '4294967295' &&
-          t.x >= this.selectionStartX &&
-          t.y >= this.selectionStartY &&
-          t.x <= this.selectionEndX &&
-          t.y <= this.selectionEndY
-      )
-
-      // todo smart crop if there are busy tiles
-      // for (let busyTile of notEmptyTilesInSelection) {
-      //   if (this.selectionStartX <= busyTile.x)
-      //     this.selectionStartX = busyTile.x + 10;
-      //   if (this.selectionStartY <= busyTile.y)
-      //     this.selectionStartY = busyTile.y + 10;
-      //
-      //   if (this.selectionEndX >= busyTile.x)
-      //     this.selectionEndX = busyTile.x - 10;
-      //   if (this.selectionEndY <= busyTile.x)
-      //     this.selectionEndY = busyTile.y - 10;
-      // }
-
-      // Cancel selection
-      if (notEmptyTilesInSelection.length !== 0) {
-        // TODO show toast notification
-        // TILES ARE NOT EMPTY
-        this.selectionStartX = null;
-        this.selectionStartY = null;
-        this.selectionEndX = null;
-        this.selectionEndY = null;
-      }
     },
     claim() {
       if (this.$store.state.Provider.account) {
