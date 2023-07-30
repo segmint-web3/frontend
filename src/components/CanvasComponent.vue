@@ -270,11 +270,39 @@ export default {
       let yPos = Math.floor((event.clientY - canvasRect.top)/10)*10;
       if (xPos < 0 || xPos > 990 || yPos < 0 || yPos > 990)
         return;
-      this.selectionInProcess = true;
-      this.selectionStartX = xPos;
-      this.selectionStartY = yPos;
-      this.selectionEndX = xPos;
-      this.selectionEndY = yPos;
+
+      if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && !this.highLightNftId) {
+          // we probably on mobile device and trying to select
+        let prevState = {
+          selectionStartX: this.selectionStartX,
+          selectionStartY: this.selectionStartY,
+          selectionEndX: this.selectionEndX,
+          selectionEndY: this.selectionEndY
+        }
+        this.selectionStartX = Math.min(xPos, prevState.selectionStartX);
+        this.selectionStartY = Math.min(yPos, prevState.selectionStartY);
+        this.selectionEndX = Math.max(xPos, prevState.selectionEndX);
+        this.selectionEndY = Math.max(yPos, prevState.selectionEndY);
+        while ((this.selectionEndX - this.selectionStartX + 10) * (this.selectionEndY - this.selectionStartY + 10) > 9000) {
+          // Funny random
+          // Todo, think about better crop
+          if (Math.random() > 0.5) {
+            if (this.selectionEndX > this.selectionStartX) {
+              this.selectionEndX -= 10;
+            }
+          } else {
+            if (this.selectionEndY > this.selectionStartY) {
+              this.selectionEndY -= 10;
+            }
+          }
+        }
+      } else {
+        this.selectionInProcess = true;
+        this.selectionStartX = xPos;
+        this.selectionStartY = yPos;
+        this.selectionEndX = xPos;
+        this.selectionEndY = yPos;
+      }
     },
     onMouseMove(event) {
       if (this.isMobile || !this.collectionLoaded)
