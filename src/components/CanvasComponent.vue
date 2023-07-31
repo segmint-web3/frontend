@@ -133,7 +133,7 @@ export default {
       if (nft) {
         return nft.description || 'No description :-(';
       } else {
-        return 'Loading description...'
+        return `Loading description for nft wit id ${this.highLightNftId}...`;
       }
     },
     selectionStyles: function () {
@@ -206,9 +206,13 @@ export default {
         this.redraw(mutation.payload.tilesByIndex, this.$store.state.Provider.epoch);
       } else if (mutation.type === 'Provider/setTile') {
         this.drawTile(mutation.payload.tile, this.$store.state.Provider.epoch);
-      } else if (mutation.type === 'Provider/setEpoch') {
+      } else if (mutation.type === 'Provider/setEpoch' || mutation.type === 'Provider/addBlockedNft') {
         // Epoch is changed, redraw everything
-        this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
+        if (this.$store.state.Provider.collectionLoaded) {
+          setTimeout(() => {
+            this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
+          }, 1);
+        }
       } else if (mutation.type === 'Provider/makeFireShow') {
         let nft = this.$store.state.Provider.userNfts.find((nft) => nft.id === mutation.payload.id);
         // Make fireshow
