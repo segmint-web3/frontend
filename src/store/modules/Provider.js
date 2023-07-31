@@ -170,7 +170,7 @@ async function loadCollection(provider, commit) {
 
     let {fields: parsedState} = await collectionContract.getFields({cachedState: collectionCachedState});
     console.log('state parsed', ((Date.now() - seconds)/1000).toFixed(1));
-
+    await new Promise((resolve) => setTimeout(resolve, 1));
 
     for (let elem of parsedState.tiles_) {
       let blockchainIndex = new BN(elem[0]);
@@ -181,6 +181,7 @@ async function loadCollection(provider, commit) {
       tilesColorsByIndex[index] = covertTileColorToPixels(elem[1]);
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 1));
     for (let elem of parsedState.tileOwner_) {
       let blockchainIndex = new BN(elem[0]);
       let nftIdEpochId = new BN(elem[1]);
@@ -218,6 +219,7 @@ async function loadCollection(provider, commit) {
         }
       }
     }
+    await new Promise((resolve) => setTimeout(resolve, 1));
 
     commit('Provider/setEpoch', { epoch: parsedState.currentEpoch_, price: parsedState.currentEpochPixelTilePrice_ });
     commit('Provider/setMintDisabled', parsedState.mintDisabled_);
