@@ -7,24 +7,24 @@
       </div>
       <div class="flex claim-modal-content">
         <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
-        <div v-if='!$props.id && !hideOnInputMobile' class="instructions">
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
           You have selected a {{this.width}}x{{this.height}} segment
         </div>
-        <div v-if='!$props.id && !hideOnInputMobile' class="instructions">
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
            {{`Price ${this.mintingPrice} VENOM`}}
         </div>
-        <div v-if="!canBeClaimed && $props.id && !hideOnInputMobile" class="instructions">
+        <div v-if="!canBeClaimed && $props.id" v-show='!hideOnInputMobile' class="instructions">
           Please upload a picture {{this.width}}x{{this.height}}px.
         </div>
-        <label v-if='!hideOnInputMobile'  for="assetsFieldHandle" class="file-upload">
+        <label v-show='!hideOnInputMobile' for="assetsFieldHandle" class="file-upload">
           <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
                  @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
           <button class="transparent-button">Select Image</button>
         </label>
-        <div v-if='!hideOnInputMobile' v-show="canBeClaimed" :style="canvasContainerStyles" class="canvasContainer">
+        <div v-show="canBeClaimed && !hideOnInputMobile" :style="canvasContainerStyles" class="canvasContainer">
           <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
         </div>
-        <div v-if='!hideOnInputMobile' v-show="canBeClaimed" class='slider'>
+        <div v-show="canBeClaimed && !hideOnInputMobile" class='slider'>
           <label :class="{selected: resizeMode === 'cover'}" @click='setResizeMode("cover")'>
             <div>Cover</div>
           </label>
@@ -77,7 +77,7 @@ export default {
       link: '',
       publicPath: process.env.BASE_URL,
       linkValid: true,
-      isMobile: isMobile(window.navigator).any,
+      isMobile: isMobile(window.navigator).any || true,
       hideOnInputMobile: false
     }
   },

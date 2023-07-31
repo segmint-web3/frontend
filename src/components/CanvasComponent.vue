@@ -419,7 +419,7 @@ export default {
       if (this.badTiles.length > 0) {
         setTimeout(() => {
           this.clearSelection();
-        }, 3000);
+        }, 2000);
       }
     },
     onMouseLeave() {
