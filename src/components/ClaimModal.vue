@@ -5,26 +5,26 @@
         {{ headerText }}
         <img :src="`${publicPath}icons/close.svg`" alt="close" class="close" @click="$emit('close')">
       </div>
-      <div class=" flex claim-modal-content">
+      <div class="flex claim-modal-content">
         <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
-        <div v-if='!$props.id' class="instructions">
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
           You have selected a {{this.width}}x{{this.height}} segment
         </div>
-        <div v-if='!$props.id' class="instructions">
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
            {{`Price ${this.mintingPrice} VENOM`}}
         </div>
-        <div v-if="!canBeClaimed && $props.id" class="instructions">
+        <div v-if="!canBeClaimed && $props.id" v-show='!hideOnInputMobile' class="instructions">
           Please upload a picture {{this.width}}x{{this.height}}px.
         </div>
-        <label for="assetsFieldHandle" class="file-upload">
+        <label v-show='!hideOnInputMobile' for="assetsFieldHandle" class="file-upload">
           <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
                  @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
           <button class="transparent-button">Select Image</button>
         </label>
-        <div v-show="canBeClaimed" :style="canvasContainerStyles" class="canvasContainer">
+        <div v-show="canBeClaimed && !hideOnInputMobile" :style="canvasContainerStyles" class="canvasContainer">
           <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
         </div>
-        <div  v-show="canBeClaimed" class='slider'>
+        <div v-show="canBeClaimed && !hideOnInputMobile" class='slider'>
           <label :class="{selected: resizeMode === 'cover'}" @click='setResizeMode("cover")'>
             <div>Cover</div>
           </label>
@@ -39,12 +39,12 @@
           <div class="flex description">
             <img :src="`${publicPath}icons/title.svg`" alt="title">
             <label for="description">Title:</label>
-            <input v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
+            <input @focus='onFocus' @blur='onBlur' v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
           </div>
           <div class="flex link">
             <img :src="`${publicPath}icons/link.svg`" alt="link">
             <label for="link">Link:</label>
-            <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
+            <input @focus='onFocus' @blur='onBlur' v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
           </div>
           <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
@@ -63,6 +63,7 @@
 <script>
 import {encodePixelsToTileColor} from "@/utils/pixels";
 import Blitz from 'blitz-resize';
+import isMobile from 'ismobilejs';
 
 export default {
   name: 'ClaimModal',
@@ -75,7 +76,9 @@ export default {
       description: '',
       link: '',
       publicPath: process.env.BASE_URL,
-      linkValid: true
+      linkValid: true,
+      isMobile: isMobile(window.navigator).any,
+      hideOnInputMobile: false
     }
   },
   props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onerror', 'onclose'],
@@ -115,11 +118,18 @@ export default {
     }
   },
   methods: {
+    onFocus() {
+      if (this.isMobile)
+        this.hideOnInputMobile = true;
+    },
+    onBlur() {
+      this.hideOnInputMobile = false;
+    },
     setResizeMode(mode) {
       this.resizeMode = mode;
       this.redraw();
     },
-    redraw() {
+    redraw(retry_num) {
       const ctx = this.$refs.canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;
       const width = this.$props.width;
@@ -183,6 +193,12 @@ export default {
         }
       }
       blitz(params).then((img) => {
+        if (img.width === 0 || img.height === 0) {
+          // triky for iOS
+          if (!retry_num || retry_num < 10) {
+            this.redraw((retry_num || 1) + 1);
+          }
+        }
         if (this.resizeMode === 'contain') {
           const x = (width - img.width) / 2;
           const y = (height - img.height) / 2;
@@ -227,9 +243,9 @@ export default {
         this.linkValid = true;
         let promise;
         if (this.$props.id) {
-          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.toLowerCase().trim()});
+          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.trim()});
         } else {
-          promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.toLowerCase().trim()});
+          promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.trim()});
         }
 
         if (promise) {
@@ -297,14 +313,27 @@ canvas {
 }
 .modal-content {
   position: fixed;
-  top: 10%;
-  left: calc(50% - 166px);
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  min-height: 100%;
   flex-direction: column;
-  min-width: 300px;
   background-color: #21004B;
   border: 10px solid #7000FF;
   color: #CCFF00;
+  box-sizing: border-box;
 }
+
+@media only screen and (min-width: 500px) {
+  .modal-content {
+    top: 15%;
+    left: calc(50% - 250px);
+    min-width: 300px;
+    min-height: 300px;
+    border: 10px solid #7000FF;
+  }
+}
+
 .claim-modal-content {
   flex-direction: column;
   padding: 20px;

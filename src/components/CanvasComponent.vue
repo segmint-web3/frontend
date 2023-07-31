@@ -19,7 +19,7 @@
       </div>
       <br />
     </div>
-    <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess" v-on:click="claim">
+    <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess && this.badTiles.length === 0" v-on:click="claim">
       <!-- SegMint pixels {{this.selectionEndX - this.selectionStartX + 10}}x{{this.selectionEndY - this.selectionStartY + 10}} -->
       Mint segment
     </button>
@@ -30,6 +30,7 @@
 import ClaimModal from "@/components/ClaimModal.vue";
 import MessageModal from '@/components/MessageModal.vue'
 import { getBlackPixels, getWhitePixels } from '@/utils/pixels'
+import isMobile from 'ismobilejs';
 
 // import zoomMixin from "@/mixins/zoom"
 
@@ -55,7 +56,8 @@ export default {
       lastMousePosX: 0,
       lastMousePosY: 0,
       selectionTriedCounter: 0,
-      errorMessage: ''
+      errorMessage: '',
+      isMobile: isMobile(window.navigator).any
     }
   },
   computed: {
@@ -131,7 +133,7 @@ export default {
       if (nft) {
         return nft.description || 'No description :-(';
       } else {
-        return 'Loading description...'
+        return `Loading description for nft wit id ${this.highLightNftId}...`;
       }
     },
     selectionStyles: function () {
@@ -204,9 +206,13 @@ export default {
         this.redraw(mutation.payload.tilesByIndex, this.$store.state.Provider.epoch);
       } else if (mutation.type === 'Provider/setTile') {
         this.drawTile(mutation.payload.tile, this.$store.state.Provider.epoch);
-      } else if (mutation.type === 'Provider/setEpoch') {
+      } else if (mutation.type === 'Provider/setEpoch' || mutation.type === 'Provider/addBlockedNft') {
         // Epoch is changed, redraw everything
-        this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
+        if (this.$store.state.Provider.collectionLoaded) {
+          setTimeout(() => {
+            this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
+          }, 1);
+        }
       } else if (mutation.type === 'Provider/makeFireShow') {
         let nft = this.$store.state.Provider.userNfts.find((nft) => nft.id === mutation.payload.id);
         // Make fireshow
@@ -277,6 +283,21 @@ export default {
     onMouseDown(event) {
       if (!this.collectionLoaded)
         return;
+
+      if (this.isMobile && !this.isEditingMode) {
+        console.log('is mobile', true);
+        // On mobile selection available only in editing mode;
+        if (this.highLightNftId) {
+          let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
+          if (nft && nft.url) {
+            const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+            if (urlPattern.test(nft.url)) {
+              window.open(nft.url, '_blank');
+            }
+          }
+        }
+        return;
+      }
 
       // this is tricky to show empty tiles
       setTimeout(() => {
@@ -360,7 +381,7 @@ export default {
         return;
       }
 
-      // Some tricky logic to keep max selected piece in range 0..10000 pixels
+      // Some tricky logic to keep max selected piece in range 0..9000 pixels
       if (xPos <= this.selectionEndX) {
         this.selectionEndX = Math.max(xPos, this.selectionStartX);
       } else {
@@ -391,7 +412,6 @@ export default {
         return
       this.selectionInProcess = false;
       if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
-
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
         if (nft && nft.url) {
           const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
@@ -401,7 +421,9 @@ export default {
         }
       }
       if (this.badTiles.length > 0) {
-        this.clearSelection();
+        setTimeout(() => {
+          this.clearSelection();
+        }, 2000);
       }
     },
     onMouseLeave() {
