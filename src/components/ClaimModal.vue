@@ -42,7 +42,7 @@
             <input v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
           </div>
           <div class="flex link">
-            <img :src="`${publicPath}icons/title.svg`" alt="link">
+            <img :src="`${publicPath}icons/link.svg`" alt="link">
             <label for="link">Link:</label>
             <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
           </div>
@@ -308,6 +308,8 @@ canvas {
 .claim-modal-content {
   flex-direction: column;
   padding: 20px;
+  max-height: 500px;
+  overflow-y: scroll;
 }
 .instructions {
   font-weight: 700;
