@@ -5,26 +5,26 @@
         {{ headerText }}
         <img :src="`${publicPath}icons/close.svg`" alt="close" class="close" @click="$emit('close')">
       </div>
-      <div class=" flex claim-modal-content">
+      <div class="flex claim-modal-content">
         <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
-        <div v-if='!$props.id' class="instructions">
+        <div v-if='!$props.id && !hideOnInputMobile' class="instructions">
           You have selected a {{this.width}}x{{this.height}} segment
         </div>
-        <div v-if='!$props.id' class="instructions">
+        <div v-if='!$props.id && !hideOnInputMobile' class="instructions">
            {{`Price ${this.mintingPrice} VENOM`}}
         </div>
-        <div v-if="!canBeClaimed && $props.id" class="instructions">
+        <div v-if="!canBeClaimed && $props.id && !hideOnInputMobile" class="instructions">
           Please upload a picture {{this.width}}x{{this.height}}px.
         </div>
-        <label for="assetsFieldHandle" class="file-upload">
+        <label v-if='!hideOnInputMobile'  for="assetsFieldHandle" class="file-upload">
           <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
                  @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
           <button class="transparent-button">Select Image</button>
         </label>
-        <div v-show="canBeClaimed" :style="canvasContainerStyles" class="canvasContainer">
+        <div v-if='!hideOnInputMobile' v-show="canBeClaimed" :style="canvasContainerStyles" class="canvasContainer">
           <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
         </div>
-        <div  v-show="canBeClaimed" class='slider'>
+        <div v-if='!hideOnInputMobile' v-show="canBeClaimed" class='slider'>
           <label :class="{selected: resizeMode === 'cover'}" @click='setResizeMode("cover")'>
             <div>Cover</div>
           </label>
@@ -39,12 +39,12 @@
           <div class="flex description">
             <img :src="`${publicPath}icons/title.svg`" alt="title">
             <label for="description">Title:</label>
-            <input v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
+            <input @focus='onFocus' @blur='onBlur' v-model="description" type="text" id="description" class="input" maxlength="1000" autocorrect="off" autocapitalize="off">
           </div>
           <div class="flex link">
             <img :src="`${publicPath}icons/title.svg`" alt="link">
             <label for="link">Link:</label>
-            <input v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
+            <input @focus='onFocus' @blur='onBlur' v-model="link" type="text" id="link" class="input" maxlength="1000" @input="inputLink($event)" autocorrect="off" autocapitalize="off">
           </div>
           <div v-if="!linkValid" class="error">Link format is not correct</div>
           <button class="primary-button" v-on:click="claim">
@@ -63,6 +63,7 @@
 <script>
 import {encodePixelsToTileColor} from "@/utils/pixels";
 import Blitz from 'blitz-resize';
+import isMobile from 'ismobilejs';
 
 export default {
   name: 'ClaimModal',
@@ -75,7 +76,9 @@ export default {
       description: '',
       link: '',
       publicPath: process.env.BASE_URL,
-      linkValid: true
+      linkValid: true,
+      isMobile: isMobile(window.navigator).any,
+      hideOnInputMobile: false
     }
   },
   props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onerror', 'onclose'],
@@ -115,6 +118,13 @@ export default {
     }
   },
   methods: {
+    onFocus() {
+      if (this.isMobile)
+        this.hideOnInputMobile = true;
+    },
+    onBlur() {
+      this.hideOnInputMobile = false;
+    },
     setResizeMode(mode) {
       this.resizeMode = mode;
       this.redraw();
