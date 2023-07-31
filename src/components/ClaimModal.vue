@@ -77,7 +77,7 @@ export default {
       link: '',
       publicPath: process.env.BASE_URL,
       linkValid: true,
-      isMobile: isMobile(window.navigator).any || true,
+      isMobile: isMobile(window.navigator).any,
       hideOnInputMobile: false
     }
   },
