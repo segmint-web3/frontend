@@ -119,7 +119,7 @@ export default {
       this.resizeMode = mode;
       this.redraw();
     },
-    redraw() {
+    redraw(retry_num) {
       const ctx = this.$refs.canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;
       const width = this.$props.width;
@@ -183,6 +183,12 @@ export default {
         }
       }
       blitz(params).then((img) => {
+        if (img.width === 0 || img.height === 0) {
+          // triky for iOS
+          if (!retry_num || retry_num < 10) {
+            this.redraw((retry_num || 1) + 1);
+          }
+        }
         if (this.resizeMode === 'contain') {
           const x = (width - img.width) / 2;
           const y = (height - img.height) / 2;
@@ -297,14 +303,27 @@ canvas {
 }
 .modal-content {
   position: fixed;
-  top: 10%;
-  left: calc(50% - 166px);
+  top: 0;
+  left: 0;
+  min-width: 100%;
+  min-height: 100%;
   flex-direction: column;
-  min-width: 300px;
   background-color: #21004B;
   border: 10px solid #7000FF;
   color: #CCFF00;
+  box-sizing: border-box;
 }
+
+@media only screen and (min-width: 500px) {
+  .modal-content {
+    top: 15%;
+    left: calc(50% - 250px);
+    min-width: 300px;
+    min-height: 300px;
+    border: 10px solid #7000FF;
+  }
+}
+
 .claim-modal-content {
   flex-direction: column;
   padding: 20px;
