@@ -327,7 +327,7 @@ canvas {
 @media only screen and (min-width: 500px) {
   .modal-content {
     top: 15%;
-    left: calc(50% - 250px);
+    left: calc(50% - 150px);
     min-width: 300px;
     min-height: 300px;
     border: 10px solid #7000FF;

@@ -135,7 +135,7 @@ export default {
       if (nft) {
         return nft.description || 'No description :-(';
       } else {
-        return `Loading description for nft wit id ${this.highLightNftId}...`;
+        return `Loading description for nft with id ${this.highLightNftId}...`;
       }
     },
     selectionStyles: function () {

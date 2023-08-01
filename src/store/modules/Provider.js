@@ -12,8 +12,8 @@ import {BN} from "bn.js";
 import Vue from "vue";
 import { AbiParam, TokensObject } from 'everscale-inpage-provider/dist/models'
 
-const CollectionAddress = new Address("0:091ab4602f7a9d3c9055995d299aad89a7a4fc851cb995560b6a74492f14bc9d");
-const BlockListAddress = new Address("0:1640a5aeccda81df4d4533718e9e9e5f930f7fbf5329d5b6a9844405ea69dda3");
+const CollectionAddress = new Address("0:e0a9bac05d16f24e6ea5ee48bf5d4104423c76770afc1e9e0eb0649809c38eaa");
+const BlockListAddress = new Address("0:10d3f84a0146bd99100b6a00835ca1de8136e914728f802f76febe37f288476b");
 
 const ColorifyOneTilePrice = 0.0185;
 // wallet to collection 1, collection nft 0.5
