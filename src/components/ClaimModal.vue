@@ -336,6 +336,8 @@ canvas {
 
 .claim-modal-content {
   flex-direction: column;
+  flex: 1;
+  justify-content: center;
   padding: 20px;
 }
 .instructions {

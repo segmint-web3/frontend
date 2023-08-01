@@ -6,10 +6,10 @@
     <CanvasComponent :isEditingMode='isEditingMode' />
     <div v-if='!collectionPreLoaded' class='loading-fullscreen'>
       <div>
-        <h1>Loading collection</h1>
-        <h2>This might take a while</h2>
+        <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="loading-logo">
+        <p>Take your place in blockchain history!</p>
+        <p class="loading-text">Loading collection...</p>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
-        <h2 class='fun-fact'>Fact of the day: <br /> <br /> Segmint is a pure web3 app. We don't use third-party services or IPFS. We store all data on the blockchain and only read from the blockchain.</h2>
       </div>
     </div>
     <div v-if='isMintDisabled' class='loading-fullscreen'>
@@ -36,6 +36,7 @@ export default {
   },
   data() {
     return {
+      publicPath: process.env.BASE_URL,
       myNftOpened: false,
       isEditingMode: false,
       message: 'Its okay to be not okay'
@@ -97,7 +98,7 @@ html, body {
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: #3B0087;
+  background-color: #7000FF;
   color: var(--primary);
   display: flex;
   flex-direction: column;
@@ -105,8 +106,20 @@ html, body {
   text-align: center;
   align-items: center;
 }
-.fun-fact {
-  max-width: 400px;
-  padding: 10px;
+.loading-fullscreen p{
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+}
+p.loading-text {
+  margin: 60px 0 20px;
+}
+.loading-logo {
+  height: 300px;
+}
+@media only screen and (max-width: 768px) {
+  .loading-logo {
+    height: 200px;
+  }
 }
 </style>

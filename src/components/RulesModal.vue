@@ -80,6 +80,8 @@ export default {
   left: calc(50% - 225px);
   flex-direction: column;
   width: 450px;
+  max-height: 95%;
+  overflow-y: scroll;
   background-color: #21004B;
   border: 10px solid #7000FF;
   color: #CCFF01;

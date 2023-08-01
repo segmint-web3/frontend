@@ -7,10 +7,12 @@
     </div>
     <div class='nft-info-container'>
       <div class='nft-info-title'>
-        <a :href='$props.url' target='_blank'>
+        <a :href='$props.url' target='_blank' :title="this.$props.description">
           {{this.$props.description}}
         </a>
       </div>
+    </div>
+    <div class="nft-buttons">
       <div class='secondary-button nft-info-button' @click='edit'>
         <span>
           Edit
@@ -165,12 +167,16 @@ canvas {
 .nft-info-container {
   width: 100%;
   display: flex;
+}
+
+.nft-buttons {
+  display: flex;
   flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
+  padding: 0 10px;
 }
 
 .nft-info-title {
+  width: 100%;
   padding: 5px 10px;
   flex: 1;
   text-align: left;
@@ -187,7 +193,7 @@ canvas {
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 110px;
+  max-width: 90%;
   display: block;
 }
 
