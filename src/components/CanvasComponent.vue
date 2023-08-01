@@ -44,7 +44,6 @@ export default {
       ctx: null,
       ctxOld: null,
       imageData: null,
-      collectionLoaded: false,
       // to claim the tiles
       selectionInProcess: false,
       selectionStartX: null,
@@ -61,6 +60,9 @@ export default {
     }
   },
   computed: {
+    collectionLoaded: function() {
+      return this.$store.state.Provider.collectionLoaded;
+    },
     hideOldCanvas: function() {
       return this.isEditingMode || this.selectionTriedCounter > 0 || this.selectionInProcess;
     },
@@ -266,7 +268,6 @@ export default {
           this.ctxOld.putImageData(this.imageData, tiles[key].x, tiles[key].y);
         }
       }
-      this.collectionLoaded = true;
     },
     styleForBadTile: function (tile) {
       // Style for one tile (10x10) in case

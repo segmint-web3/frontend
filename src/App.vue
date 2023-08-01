@@ -4,7 +4,7 @@
     <MyNftComponent v-if='myNftOpened' :onClose='closeMyNfts'/>
     <HeaderComponent :openMyNfts='openMyNfts' :openFaq='openFaq' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
     <CanvasComponent :isEditingMode='isEditingMode' />
-    <div v-if='!isCollectionLoaded' class='loading-fullscreen'>
+    <div v-if='!collectionPreLoaded' class='loading-fullscreen'>
       <div>
         <h1>Loading collection</h1>
         <h2>This might take a while</h2>
@@ -42,8 +42,8 @@ export default {
     }
   },
   computed: {
-    isCollectionLoaded() {
-      return this.$store.state.Provider.collectionLoaded;
+    collectionPreLoaded() {
+      return this.$store.state.Provider.collectionPreLoaded;
     },
     isMintDisabled() {
       return this.$store.state.Provider.mintDisabled;

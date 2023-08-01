@@ -361,7 +361,7 @@
 		{"name":"owner_","type":"address"},
 		{"name":"nonce_","type":"uint16"},
 		{"name":"mintDisabled_","type":"bool"},
-		{"components":[{"name":"r","type":"uint80[]"},{"name":"g","type":"uint80[]"},{"name":"b","type":"uint80[]"}],"name":"tiles_","type":"map(uint14,tuple)"},
+		{"components":[{"name":"r","type":"cell"},{"name":"g","type":"cell"},{"name":"b","type":"cell"}],"name":"tiles_","type":"map(uint14,tuple)"},
 		{"name":"tileOwner_","type":"map(uint14,uint64)"},
 		{"name":"nftCounter_","type":"uint32"},
 		{"name":"currentEpoch_","type":"uint32"},
