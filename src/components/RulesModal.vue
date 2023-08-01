@@ -67,7 +67,7 @@ export default {
 <style scoped>
 .primary-button {
   width: 133px;
-  font-family: 'Chakra Petch';
+  font-family: 'ChakraPetch';
   font-style: normal;
   font-weight: 700;
   font-size: 24px;
@@ -119,7 +119,7 @@ export default {
   margin-right: 11px;
 }
 .instructions-warning-text {
-  font-family: 'Chakra Petch';
+  font-family: 'ChakraPetch';
   font-style: normal;
   font-weight: 500;
   font-size: 16px;
