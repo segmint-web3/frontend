@@ -223,7 +223,7 @@ async function loadCollection(provider, commit) {
         parsed[color] = decoded.colors.head.concat(decoded.colors.tail).map(c => c[1])
       }
       const index = x * 100 + y;
-      tilesByIndex[index].pixels = covertTileColorToPixels(parsed);
+      tilesByIndex[index].pixels = blockedNftById[tilesByIndex[index].nftId] ? getWhitePixels() : covertTileColorToPixels(parsed);
       commit('Provider/setTile', {
         tile: tilesByIndex[index]
       });
@@ -415,9 +415,14 @@ export const Provider = {
       }
     },
     setTile(state, { tile }) {
-      if (state.blockedNftById[tile.nftId] === true)
-        return;
-      state.tilesByIndex[tile.index] = tile;
+      if (state.blockedNftById[tile.nftId] === true) {
+        state.tilesByIndex[tile.index] = {
+          ...tile,
+          pixels: getWhitePixels()
+        }
+      } else {
+        state.tilesByIndex[tile.index] = tile;
+      }
       delete state.nftDataById[tile.nftId]
     },
     nftMinted(state, {owner, id}) {
