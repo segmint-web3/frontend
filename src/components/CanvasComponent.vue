@@ -29,7 +29,7 @@
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
 import MessageModal from '@/components/MessageModal.vue'
-import { getBlackPixels, getWhitePixels } from '@/utils/pixels'
+import { getMainBackgroundTileColor, getMainForegroundTileColor } from '@/utils/pixels'
 import isMobile from 'ismobilejs';
 
 // import zoomMixin from "@/mixins/zoom"
@@ -228,7 +228,7 @@ export default {
                     this.drawTile({
                       x: tX * 10,
                       y: tY * 10,
-                      pixels: i === 24 ? this.$store.state.Provider.tilesByIndex[index].pixels : (i % 2 === 0 ? getWhitePixels() : getBlackPixels())
+                      pixels: i === 24 ? this.$store.state.Provider.tilesByIndex[index].pixels : (i % 2 === 0 ? getMainBackgroundTileColor() : getMainForegroundTileColor())
                     }, this.$store.state.Provider.epoch);
                   }
                 }

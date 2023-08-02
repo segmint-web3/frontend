@@ -7,7 +7,12 @@ import NftAbi from "./abi/SegmintNft.abi.json";
 import IndexAbi from "./abi/Index.abi.json";
 import BlockListAbi from "./abi/BlockList.abi.json";
 
-import { covertTileColorToPixels, getWhitePixels } from '@/utils/pixels'
+import {
+  covertTileColorToPixels,
+  getMainBackgroundTileColor,
+  getMainForegroundTileColor,
+  getWhitePixels
+} from '@/utils/pixels'
 import {BN} from "bn.js";
 import Vue from "vue";
 import { AbiParam, TokensObject } from 'everscale-inpage-provider/dist/models'
@@ -115,7 +120,7 @@ async function loadCollection(provider, commit) {
                   epoch: event.data.nftEpoch,
                   x: tx * 10,
                   y: ty * 10,
-                  pixels: getWhitePixels()
+                  pixels: getMainBackgroundTileColor()
                 }
                 if (stateLoaded) {
                   commit('Provider/setTile', { tile: tile });
@@ -223,7 +228,7 @@ async function loadCollection(provider, commit) {
         parsed[color] = decoded.colors.head.concat(decoded.colors.tail).map(c => c[1])
       }
       const index = x * 100 + y;
-      tilesByIndex[index].pixels = blockedNftById[tilesByIndex[index].nftId] ? getWhitePixels() : covertTileColorToPixels(parsed);
+      tilesByIndex[index].pixels = blockedNftById[tilesByIndex[index].nftId] ? getMainBackgroundTileColor() : covertTileColorToPixels(parsed);
       commit('Provider/setTile', {
         tile: tilesByIndex[index]
       });
@@ -506,7 +511,7 @@ export const Provider = {
                 epoch: state.tilesByIndex[index].epoch,
                 x: x * 10,
                 y: y * 10,
-                pixels: Array(10 * 10 * 4).fill(255)
+                pixels: getMainBackgroundTileColor()
               }
               state.tilesByIndex[index] = tile;
             }
@@ -713,7 +718,7 @@ export const Provider = {
     },
     fetchNftData({state, commit}, {id}) {
       if (state.blockedNftById[id] === true) {
-        commit('setNftData', {id, description: 'This nft is blocked on frontend side due to unappropriated content', url: 'https://segmoint.app/'})
+        commit('setNftData', {id, description: 'This nft is blocked on frontend side due to unappropriated content', url: 'https://segmint.app/'})
         return;
       }
       if (!state.nftDataById[id] && state.standaloneProvider && state.collectionCachedState) {

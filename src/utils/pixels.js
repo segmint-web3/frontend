@@ -12,6 +12,26 @@ export function getBlackPixels() {
   return BlackTile;
 }
 
+const MainBackgroundTileColor = Array(10 * 10 * 4).fill(255);
+for (let i = 0; i < MainBackgroundTileColor.length; i++) {
+  (i % 4 === 0) && (MainBackgroundTileColor[i] = 33);
+  (i % 4 === 1) && (MainBackgroundTileColor[i] = 0);
+  (i % 4 === 2) && (MainBackgroundTileColor[i] = 75);
+}
+export function getMainBackgroundTileColor() {
+  return MainBackgroundTileColor;
+}
+
+const MainForegroundTileColor = Array(10 * 10 * 4).fill(255);
+for (let i = 0; i < MainForegroundTileColor.length; i++) {
+  (i % 4 === 0) && (MainForegroundTileColor[i] = 204);
+  (i % 4 === 1) && (MainForegroundTileColor[i] = 255);
+  (i % 4 === 2) && (MainForegroundTileColor[i] = 1);
+}
+export function getMainForegroundTileColor() {
+  return MainForegroundTileColor;
+}
+
 export function getRandomPixels() {
   let pixels = [];
   for (let y = 0; y < 10; y ++) {

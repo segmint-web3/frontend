@@ -38,7 +38,7 @@
 </template>
 
 <script>
-import { getRandomPixels } from '@/utils/pixels'
+import { getMainForegroundTileColor } from '@/utils/pixels'
 
 export default {
   name: 'OneNft',
@@ -139,7 +139,7 @@ export default {
             imageData.data.set(tileInStore.pixels);
             ctx.putImageData(imageData, x - this.$props.x, y - this.$props.y);
           } else {
-            imageData.data.set(getRandomPixels());
+            imageData.data.set(getMainForegroundTileColor());
             ctx.putImageData(imageData, x - this.$props.x, y - this.$props.y);
           }
         }
