@@ -296,8 +296,8 @@ export default {
               window.open(nft.url, '_blank');
             }
           }
+          return;
         }
-        return;
       }
 
       // this is tricky to show empty tiles
