@@ -212,7 +212,7 @@ export default {
         // Epoch is changed, redraw everything
         if (this.$store.state.Provider.collectionLoaded) {
           setTimeout(() => {
-            this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch);
+            this.redraw(this.$store.state.Provider.tilesByIndex, mutation.payload.epoch || this.$store.state.Provider.epoch);
           }, 1);
         }
       } else if (mutation.type === 'Provider/makeFireShow') {
