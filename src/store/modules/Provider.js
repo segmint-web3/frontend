@@ -8,25 +8,33 @@ import IndexAbi from "./abi/Index.abi.json";
 import BlockListAbi from "./abi/BlockList.abi.json";
 
 import {
-  covertTileColorToPixels,
-  getMainBackgroundTileColor,
-  getMainForegroundTileColor,
-  getWhitePixels
+  getMainBackgroundTileColor, getMainForegroundTileColor, tryToDecodeTile
 } from '@/utils/pixels'
 import {BN} from "bn.js";
-import Vue from "vue";
-import { AbiParam, TokensObject } from 'everscale-inpage-provider/dist/models'
 
-const CollectionAddress = new Address("0:e0a9bac05d16f24e6ea5ee48bf5d4104423c76770afc1e9e0eb0649809c38eaa");
-const BlockListAddress = new Address("0:10d3f84a0146bd99100b6a00835ca1de8136e914728f802f76febe37f288476b");
+const Pages ={
+  ocean: {
+    collection: new Address("0:1a98a60471cb91af9f7c47063c2d2a5c4df325b28d53f3b3b2d05bcc5e6b81b8"),
+    blocklist: new Address("0:ccce4d99f3d55202b82c8c118ed764c62564c4046c2f020a0161f3991612fee6")
+  },
+  desert: {
+    collection: new Address("0:7f640c417b44e1a0bd870b502a47292572b78a33dfccc6c63c67c171d6505aaa"),
+    blocklist: new Address("0:3166eabbd9339250a9d2faf4b24a6d9bebd432042127664c9fbb813a7f74bf68")
+  },
+  forest: {
+    collection: new Address("0:e607b54636f6d26b92f52f4c8ad2e013eee4415ef151f0881e275abf79aaebd7"),
+    blocklist: new Address("0:ac4487ff0bef72c0579b6527f1378c0e2cfbe412e91be672d60c10af4ebe300d")
+  }
+}
 
-const ColorifyOneTilePrice = 0.0185;
+const nftCode = '';
+
 // wallet to collection 1, collection nft 0.5
-const MaximumFwdFeeForBigMint = 0.15;
+const MaximumFwdFeeForBigMint = 1.5; // 0.15;
 // 1 for deploy nft, 1 create nft,
-const OneNftMintingCost = 0.8;
+const OneNftMintingCost = 1; // 0.8;
 // Whole block, 1 for se, 0.2 for venom.
-const MaximumClaimGasPrice = 0.15;
+const MaximumClaimGasPrice = 1; //  0.15;
 
 const BurnNftValue = 1.1;
 
@@ -42,8 +50,7 @@ const standaloneFallback = () =>
     },
   });
 
-
-async function loadCollection(provider, commit) {
+async function loadCollection(provider, page, commit) {
   let collectionSubscriber;
   try {
     // Is cached state loaded
@@ -51,9 +58,8 @@ async function loadCollection(provider, commit) {
 
     collectionSubscriber = new provider.Subscriber()
     // Subscribe at first
-    const collectionContract = new provider.Contract(CollectionAbi, CollectionAddress);
-    const blockListContract = new provider.Contract(BlockListAbi, BlockListAddress);
-
+    const collectionContract = new provider.Contract(CollectionAbi, Pages[page].collection);
+    const blockListContract = new provider.Contract(BlockListAbi, Pages[page].blocklist);
 
     let {fields: blockedListParsedState} = await blockListContract.getFields({});
     let blockedNftById = {};
@@ -65,7 +71,6 @@ async function loadCollection(provider, commit) {
 
     // We collect every new taken pixels & colorify nfts
     // To be added after cached state is loaded.
-
     collectionSubscriber.transactions(blockListContract.address).on(async  (data) => {
       console.log('We got a new transactions on blockList address', data);
       for (let tx of data.transactions.reverse()) {
@@ -86,16 +91,15 @@ async function loadCollection(provider, commit) {
         let events = await collectionContract.decodeTransactionEvents({ transaction: tx });
         for (let event of events) {
           if (event.event === "TileColorify") {
-            let x = parseInt(event.data.pixelStartX);
-            let y = parseInt(event.data.pixelStartY);
-
+            let x = parseInt(event.data.tileX);
+            let y = parseInt(event.data.tileY);
             let tile = {
-              index: (x / 10) * 100 + y / 10,
+              index: x * 50 + y,
               nftId: event.data.nftId,
               epoch: event.data.nftEpoch,
-              x: x,
-              y: y,
-              pixels: covertTileColorToPixels(event.data.tileColors)
+              x: x * 20,
+              y: y * 20,
+              pixels: tryToDecodeTile(event.data.colors)
             }
             if (stateLoaded) {
               commit('Provider/setTile', { tile: tile });
@@ -106,22 +110,24 @@ async function loadCollection(provider, commit) {
               })
             }
           } else if (event.event === 'NftMinted') {
-            let x = parseInt(event.data.pixelStartX);
-            let y = parseInt(event.data.pixelStartY);
+            let x = parseInt(event.data.tileStartX);
+            let y = parseInt(event.data.tileStartY);
 
-            let endX = parseInt(event.data.pixelEndX);
-            let endY = parseInt(event.data.pixelEndY);
+            let endX = parseInt(event.data.tileEndX);
+            let endY = parseInt(event.data.tileEndY);
 
-            for (let tx = x / 10; tx < endX / 10; tx++) {
-              for (let ty = y / 10; ty < endY / 10; ty++) {
+            let colorsIndex = 0;
+            for (let tx = x; tx < endX; tx++) {
+              for (let ty = y; ty < endY; ty++) {
                 let tile = {
-                  index: tx * 100 + ty,
+                  index: tx * 50 + ty,
                   nftId: event.data.nftId,
                   epoch: event.data.nftEpoch,
-                  x: tx * 10,
-                  y: ty * 10,
-                  pixels: getMainBackgroundTileColor()
+                  x: tx * 20,
+                  y: ty * 20,
+                  pixels: tryToDecodeTile(event.data.colors[colorsIndex])
                 }
+                colorsIndex++;
                 if (stateLoaded) {
                   commit('Provider/setTile', { tile: tile });
                 } else {
@@ -178,84 +184,56 @@ async function loadCollection(provider, commit) {
 
     await new Promise((resolve) => setTimeout(resolve, 1));
 
-    commit('Provider/setEpoch', { epoch: parsedState.currentEpoch_, price: parsedState.currentEpochPixelTilePrice_ });
+    commit('Provider/setEpoch', { epoch: parsedState.currentEpoch_, price: parsedState.currentEpochTilePrice_ });
     commit('Provider/setMintDisabled', parsedState.mintDisabled_);
     commit('Provider/setCollection', { collectionContract, collectionCachedState, nftTvc: await provider.codeToTvc(parsedState._codeNft) });
 
     await new Promise((resolve) => setTimeout(resolve, 1));
 
-    const emptyBN = new BN('4294967295', 10);
-
-    for (let elem of parsedState.tileOwner_) {
+    const maxNftIdBN = new BN('4294967295', 10);
+    for (let elem of parsedState.tiles_) {
       let blockchainIndex = new BN(elem[0]);
-      let nftIdEpochId = new BN(elem[1]);
-      let x = parseInt(blockchainIndex.shrn(7).toString(10));
-      let y = parseInt(blockchainIndex.and(new BN('127', 10)).toString(10));
+      let nftIdEpochId = new BN(elem[1].epochWitNftId);
+
+      let x = blockchainIndex.shrn(6).toNumber();
+      let y = blockchainIndex.and(new BN('63', 10)).toNumber();
 
       let nftId = nftIdEpochId.shrn(32).toString(10);
-      let epoch = nftIdEpochId.and(emptyBN).toString(10);
+      let epoch = nftIdEpochId.and(maxNftIdBN).toString(10);
 
-      const index = x * 100 + y;
+      const index = x * 50 + y;
       tilesByIndex[index] = {
         index: index,
         nftId: nftId,
         epoch: epoch,
-        x: x * 10,
-        y: y * 10,
-        pixels: null
+        x: x * 20,
+        y: y * 20,
+        pixels: tryToDecodeTile(elem[1].colors)
       };
     }
     await new Promise((resolve) => setTimeout(resolve, 1));
 
-    for (let elem of parsedState.tiles_) {
-      let blockchainIndex = new BN(elem[0]);
-      let x = parseInt(blockchainIndex.shrn(7).toString(10));
-      let y = parseInt(blockchainIndex.and(new BN('127', 10)).toString(10));
-
-      let parsed = {}
-      for (let color of ['r', 'g', 'b']) {
-        let decoded = (await provider.unpackFromCell({
-          boc: elem[1][color],
-          allowPartial: true,
-          structure: [
-            {
-              components: [{ "name": "head", "type": "map(uint3,uint80)" }, { "name": "tail", "type": "map(uint3,uint80)" }],
-              name: 'colors',
-              type: 'tuple',
-            },
-          ]
-        })).data;
-        parsed[color] = decoded.colors.head.concat(decoded.colors.tail).map(c => c[1])
-      }
-      const index = x * 100 + y;
-      tilesByIndex[index].pixels = blockedNftById[tilesByIndex[index].nftId] ? getMainBackgroundTileColor() : covertTileColorToPixels(parsed);
-      commit('Provider/setTile', {
-        tile: tilesByIndex[index]
-      });
-      if (y % 100 === 0)
-        await new Promise((resolve) => setTimeout(resolve, 10));
-    }
-
-    for (let y = 0; y < 100; y++) {
+    for (let y = 0; y < 50; y++) {
       await new Promise((resolve) => setTimeout(resolve, 1));
-      for (let x = 0; x < 100; x++) {
-        let index = x * 100 + y;
+      for (let x = 0; x < 50; x++) {
+        let index = x * 50 + y;
         if (!tilesByIndex[index]) {
           const tile = {
             index: index,
             nftId: "4294967295",
             epoch: 0,
-            x: x * 10,
-            y: y * 10,
-            pixels: Array(10 * 10 * 4).fill(0)
+            x: x * 20,
+            y: y * 20,
+            pixels: Array(20 * 20 * 4).fill(0)
           }
           commit('Provider/setTile', {
-            tile: tile
+            tile: tile,
+            silent: true
           });
-        } else if (!tilesByIndex[index].pixels){
-          tilesByIndex[index].pixels = getWhitePixels();
+        } else {
           commit('Provider/setTile', {
-            tile: tilesByIndex[index]
+            tile: tilesByIndex[index],
+            silent: true
           });
         }
       }
@@ -274,7 +252,7 @@ async function loadCollection(provider, commit) {
     console.log('load collection error', e);
     collectionSubscriber && collectionSubscriber.unsubscribe();
     setTimeout(function() {
-      loadCollection(provider, commit);
+      loadCollection(provider, page, commit);
     }, 10000)
   }
 }
@@ -306,10 +284,10 @@ async function fetchUserNft(id, nftTvc, userAddress, provider, commit) {
       lockedAmount: nftInfo.lockedAmount,
       description: nftInfo.description,
       url: nftInfo.url,
-      x: parseInt(nftInfo.tilePixelsStartX),
-      y: parseInt(nftInfo.tilePixelsStartY),
-      width: parseInt(nftInfo.tilePixelsEndX) - parseInt(nftInfo.tilePixelsStartX),
-      height: parseInt(nftInfo.tilePixelsEndY) - parseInt(nftInfo.tilePixelsStartY)
+      tileStartX: parseInt(nftInfo.tileStartX),
+      tileStartY: parseInt(nftInfo.tileStartY),
+      tileEndX: parseInt(nftInfo.tileEndX),
+      tileEndY: parseInt(nftInfo.tileEndY)
     }
   })
 }
@@ -344,10 +322,10 @@ async function fetchUserNfts(userAddress, provider, nftTvc, collectionContract, 
                 lockedAmount: nftInfo.lockedAmount,
                 description: nftInfo.description,
                 url: nftInfo.url,
-                x: parseInt(nftInfo.tilePixelsStartX),
-                y: parseInt(nftInfo.tilePixelsStartY),
-                width: parseInt(nftInfo.tilePixelsEndX) - parseInt(nftInfo.tilePixelsStartX),
-                height: parseInt(nftInfo.tilePixelsEndY) - parseInt(nftInfo.tilePixelsStartY)
+                tileStartX: parseInt(nftInfo.tileStartX),
+                tileStartY: parseInt(nftInfo.tileStartY),
+                tileEndX: parseInt(nftInfo.tileEndX),
+                tileEndY: parseInt(nftInfo.tileEndY)
               }
             })
           }
@@ -362,6 +340,7 @@ async function fetchUserNfts(userAddress, provider, nftTvc, collectionContract, 
 export const Provider = {
   namespaced: true,
   state: {
+    page: null,
     venomConnect: null,
     provider: null,
     standaloneProvider: null,
@@ -377,18 +356,22 @@ export const Provider = {
     nftTvc: undefined,
     epoch: 0,
     currentTilePrice: 0,
+    setTileCounter: 0, // counter to reactive update bad tiles in selections
     mintDisabled: false,
     tilesByIndex: {},
     nftDataById: {},
     blockedNftById: {}
   },
   mutations: {
+    setPage(state, page) {
+      state.page = page;
+    },
     setVenomConnect(state, venomConnect) {
       state.venomConnect = venomConnect;
     },
     setStandaloneProvider(state, provider) {
       state.standaloneProvider = provider;
-      loadCollection(provider, this.commit);
+      loadCollection(provider, state.page, this.commit);
     },
     setProvider(state, provider) {
       console.log('setProvider', provider);
@@ -419,14 +402,17 @@ export const Provider = {
         fetchUserNfts(state.account, state.standaloneProvider, state.nftTvc, state.collectionContract, state.collectionCachedState, this.commit);
       }
     },
-    setTile(state, { tile }) {
+    setTile(state, { tile, silent }) {
       if (state.blockedNftById[tile.nftId] === true) {
         state.tilesByIndex[tile.index] = {
           ...tile,
-          pixels: getWhitePixels()
+          pixels: getMainForegroundTileColor()
         }
       } else {
         state.tilesByIndex[tile.index] = tile;
+      }
+      if (!silent) {
+        state.setTileCounter++;
       }
       delete state.nftDataById[tile.nftId]
     },
@@ -530,12 +516,18 @@ export const Provider = {
     }
   },
   actions:  {
-    init({ state, commit }) {
+    changePage({state}, {newPage}) {
+      window.location.hash = newPage;
+      localStorage.setItem('page', newPage);
+      window.reload();
+    },
+    init({ state, commit }, {page}) {
       if (state.venomConnect)
         return;
+      commit('setPage', page);
       const venomConnect = new VenomConnect({
         theme: 'light',
-        checkNetworkId: 1000, //  1000 - venom testnet
+        checkNetworkId: 1000, //  1000 - venom testnet, 1337
         providersOptions: {
           venomwallet: {
             links: {},
@@ -598,6 +590,7 @@ export const Provider = {
       venomConnect.checkAuth().then(async (provider) => {
         await provider?.ensureInitialized();
         const currentProviderState = await provider?.getProviderState();
+        window.provider = provider;
         let standAloneProvider = await venomConnect.getStandalone();
         commit('setStandaloneProvider', standAloneProvider);
         if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
@@ -622,7 +615,7 @@ export const Provider = {
       state.provider.disconnect();
       commit('setConnectedAccount', null);
     },
-    claimTiles({state, commit}, {x, y, width, height, tiles, description, url}) {
+    claimTiles({state, commit}, {tileStartX, tileStartY, tileEndX, tileEndY, tiles, description, url}) {
       if (state.account === null) {
         // connect first
         state.venomConnect.connect();
@@ -631,26 +624,34 @@ export const Provider = {
       if (url.toLowerCase().indexOf('http') !== 0) {
         url = 'http://' + url;
       }
-      let collection = new state.provider.Contract(CollectionAbi, CollectionAddress);
+      for (let x = tileStartX; x < tileEndX; x ++) {
+        for (let y = tileStartY; y < tileEndY; y ++) {
+          const index = x*50 + y;
+          const tileInStore = state.tilesByIndex[index];
+          if (tileInStore.epoch === state.epoch && tileInStore.nftId !== '4294967295') {
+            return Promise.reject(new Error('This space is already occupied. Please select another tiles.'));
+          }
+        }
+      }
+      let collection = new state.provider.Contract(CollectionAbi, Pages[state.page].collection);
       const promise = collection.methods.claimTiles({
-        "pixelStartX": x,
-        "pixelStartY": y,
-        "pixelEndX": x + width,
-        "pixelEndY": y + height,
+        "tileStartX": tileStartX,
+        "tileStartY": tileStartY,
+        "tileEndX": tileEndX,
+        "tileEndY": tileEndY,
         "tilesToColorify": tiles,
         "description": description || '',
         "url": url || '',
-        "coinsToRedrawOneTile" : Math.floor(ColorifyOneTilePrice * 1_000_000_000).toString()
       }).send({
         from: state.account,
-        amount: Math.floor( width * height / 100 * parseInt(state.currentTilePrice) + (width * height / 100 * ColorifyOneTilePrice + MaximumFwdFeeForBigMint + OneNftMintingCost + MaximumClaimGasPrice) * 1_000_000_000).toString(),
+        amount: Math.floor( ((tileEndX - tileStartX) * (tileEndY - tileStartY)) * parseInt(state.currentTilePrice) + (MaximumFwdFeeForBigMint + OneNftMintingCost + MaximumClaimGasPrice) * 1_000_000_000).toString(),
       }).then(firstTx => {
         return new Promise(async (resolve, reject) => {
           let nftMinted = false;
           let txs = [];
           const subscriber = new state.standaloneProvider.Subscriber();
           await subscriber.trace(firstTx).tap(tx_in_tree => {
-            if (tx_in_tree.account.equals(CollectionAddress)) {
+            if (tx_in_tree.account.equals(Pages[state.page].collection)) {
               txs.push(tx_in_tree);
             }
           }).finished();
@@ -660,6 +661,28 @@ export const Provider = {
                 if (event.event === 'NftMinted') {
                   nftMinted = true;
                   fetchUserNft(event.data.nftId, state.nftTvc, event.data.owner, state.provider, commit);
+
+                  let x = parseInt(event.data.tileStartX);
+                  let y = parseInt(event.data.tileStartY);
+
+                  let endX = parseInt(event.data.tileEndX);
+                  let endY = parseInt(event.data.tileEndY);
+
+                  let colorsIndex = 0;
+                  for (let tx = x; tx < endX; tx++) {
+                    for (let ty = y; ty < endY; ty++) {
+                      let tile = {
+                        index: tx * 50 + ty,
+                        nftId: event.data.nftId,
+                        epoch: event.data.nftEpoch,
+                        x: tx * 20,
+                        y: ty * 20,
+                        pixels: tryToDecodeTile(event.data.colors[colorsIndex])
+                      }
+                      colorsIndex++;
+                      commit('setTile', { tile: tile });
+                    }
+                  }
                 }
             }
           }
@@ -672,25 +695,23 @@ export const Provider = {
       })
       return promise;
     },
-    redrawNft({state, commit}, {id, x, y, width, height, tiles, description, url}) {
-      let collection = new state.provider.Contract(CollectionAbi, CollectionAddress);
+    redrawNft({state, commit}, {id, tiles, description, url}) {
+      let collection = new state.provider.Contract(CollectionAbi, Pages[state.page].collection);
       if (url.toLowerCase().indexOf('http') !== 0) {
         url = 'http://' + url;
       }
       return collection.methods.nftAddress({answerId: 0, id: id}).call({responsible: true, cachedState: state.collectionCachedState}).then(function(answer) {
         const nftContract = new state.provider.Contract(NftAbi, answer.nft);
         return nftContract.methods.colorify({
-          "tilesToColorify": tiles,
+          "colors": tiles,
           "description": description || '',
           "url": url || '',
-          "sendGasBack": state.account,
-          "coinsToRedrawOneTile" : (ColorifyOneTilePrice * 1_000_000_000).toString()
         }).send({
           from: state.account,
-          amount: (Math.floor(width * height / 100 * ColorifyOneTilePrice * 1_000_000_000) + 1_000_000_000).toString(),
+          amount: '1000000000'
         }).then(function(firstTx) {
           return new Promise(async(resolve, reject) => {
-            const subscriber = new state.provider.Subscriber();
+            const subscriber = new state.standaloneProvider.Subscriber();
             await subscriber.trace(firstTx).tap(tx_in_tree => {
               // nothing
             }).finished();
@@ -717,6 +738,7 @@ export const Provider = {
       })
     },
     fetchNftData({state, commit}, {id}) {
+      console.log('fetchNftData', id);
       if (state.blockedNftById[id] === true) {
         commit('setNftData', {id, description: 'This nft is blocked on frontend side due to unappropriated content', url: 'https://segmint.app/'})
         return;
@@ -731,6 +753,7 @@ export const Provider = {
           }
         }).then(function(data) {
           let nftContract = new state.standaloneProvider.Contract(NftAbi, data.address);
+          console.log(data.address);
           return nftContract.methods.getNftCustomData({
             answerId: 0
           }).call({

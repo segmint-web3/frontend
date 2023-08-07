@@ -20,7 +20,6 @@
       <br />
     </div>
     <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess && this.badTiles.length === 0" v-on:click="claim">
-      <!-- SegMint pixels {{this.selectionEndX - this.selectionStartX + 10}}x{{this.selectionEndY - this.selectionStartY + 10}} -->
       Mint segment
     </button>
   </div>
@@ -78,17 +77,18 @@ export default {
       }
     },
     badTiles: function() {
-      if (this.selectionStartX === null)
+      if (this.selectionStartX === null || this.$store.state.Provider.setTileCounter < 0)
         return [];
       let sX = this.selectionStartX;
       let sY = this.selectionStartY;
       let endX = this.selectionEndX;
       let endY = this.selectionEndY;
+      let tiles = this.$store.state.Provider.tilesByIndex;
       let badSelectedTiles = [];
-      for (let x = sX; x <= endX; x += 10) {
-        for (let y = sY; y <= endY; y += 10) {
-          const index = x * 10 + y/10;
-          const tileInStore = this.$store.state.Provider.tilesByIndex[index];
+      for (let x = sX; x <= endX; x += 20) {
+        for (let y = sY; y <= endY; y += 20) {
+          const index = (x/20)*50 + y/20;
+          const tileInStore = tiles[index];
           if (tileInStore.epoch === this.$store.state.Provider.epoch && tileInStore.nftId !== '4294967295') {
             badSelectedTiles.push(tileInStore);
           }
@@ -99,16 +99,16 @@ export default {
     selectedTilesCount: function () {
       if (this.selectionStartX === null || this.selectionStartY === null)
         return 0;
-      return (this.selectionEndX - this.selectionStartX + 10) / 10 * (this.selectionEndY - this.selectionStartY + 10) / 10;
+      return (this.selectionEndX - this.selectionStartX + 20) / 20 * (this.selectionEndY - this.selectionStartY + 20) / 20;
     },
     tiles: function() {
       return this.$store.state.Provider.tiles;
     },
     selectedWidth: function () {
-      return this.selectionEndX - this.selectionStartX + 10
+      return this.selectionEndX - this.selectionStartX + 20
     },
     selectedHeight: function () {
-      return this.selectionEndY - this.selectionStartY + 10
+      return this.selectionEndY - this.selectionStartY + 20
     },
     selectedPriceUSD: function () {
       return this.selectedWidth * this.selectedHeight * 1_000_000_000;
@@ -145,8 +145,8 @@ export default {
           position: 'absolute',
           left: `${this.selectionStartX}px`,
           top: `${this.selectionStartY}px`,
-          width: `${this.selectionEndX - this.selectionStartX + 10}px`,
-          height: `${this.selectionEndY - this.selectionStartY + 10}px`,
+          width: `${this.selectionEndX - this.selectionStartX + 20}px`,
+          height: `${this.selectionEndY - this.selectionStartY + 20}px`,
           backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
@@ -164,7 +164,7 @@ export default {
         if (this.selectionStartY > 100 ) {
           return {
             position: 'absolute',
-            left: `${(this.selectionStartX + this.selectionEndX)/2 - 30}px`,
+            left: `${(this.selectionStartX + this.selectionEndX)/2 - 20}px`,
             top: `${this.selectionStartY - 25}px`,
             width: `60px`,
             height: `20px`,
@@ -177,8 +177,8 @@ export default {
           // Below selection
           return {
             position: 'absolute',
-            left: `${(this.selectionStartX + this.selectionEndX)/2 - 30}px`,
-            top: `${this.selectionEndY + 15}px`,
+            left: `${(this.selectionStartX + this.selectionEndX)/2 - 20}px`,
+            top: `${this.selectionEndY + 25}px`,
             width: `60px`,
             height: `20px`,
             backgroundColor: '#CCFF01',
@@ -202,7 +202,7 @@ export default {
   mounted() {
     this.ctx = this.$refs.canvas.getContext('2d');
     this.ctxOld = this.$refs.canvasOld.getContext('2d');
-    this.imageData = this.ctx.createImageData(10, 10);
+    this.imageData = this.ctx.createImageData(20, 20);
     this.$store.subscribe((mutation) => {
       if (mutation.type === 'Provider/setCollection') {
         this.redraw(mutation.payload.tilesByIndex, this.$store.state.Provider.epoch);
@@ -221,13 +221,13 @@ export default {
         if (nft) {
           for (let i = 0; i < 25; i++) {
             setTimeout(() => {
-              for (let tX = nft.x/10; tX < (nft.x + nft.width)/10; tX++) {
-                for (let tY = nft.y/10; tY < (nft.y + nft.height)/10; tY++) {
-                  let index = tX * 100 + tY;
+              for (let tX = nft.tileStartX; tX < nft.tileEndX; tX++) {
+                for (let tY = nft.tileStartY; tY < nft.tileEndY; tY++) {
+                  let index = tX * 50 + tY;
                   if (this.$store.state.Provider.tilesByIndex[index].nftId === nft.id) {
                     this.drawTile({
-                      x: tX * 10,
-                      y: tY * 10,
+                      x: tX * 20,
+                      y: tY * 20,
                       pixels: i === 24 ? this.$store.state.Provider.tilesByIndex[index].pixels : (i % 2 === 0 ? getMainBackgroundTileColor() : getMainForegroundTileColor())
                     }, this.$store.state.Provider.epoch);
                   }
@@ -251,7 +251,7 @@ export default {
       this.imageData.data.set(tile.pixels);
       if (tile.epoch === epoch) {
         this.ctx.putImageData(this.imageData, tile.x, tile.y);
-        this.ctxOld.clearRect(tile.x, tile.y, 10, 10);
+        this.ctxOld.clearRect(tile.x, tile.y, 20, 20);
       } else {
         this.ctxOld.putImageData(this.imageData, tile.x, tile.y);
       }
@@ -270,14 +270,14 @@ export default {
       }
     },
     styleForBadTile: function (tile) {
-      // Style for one tile (10x10) in case
+      // Style for one tile (20x20) in case
       // Selection overlaps already purchased tile
       return {
         position: 'absolute',
         left: `${tile.x}px`,
         top: `${tile.y}px`,
-        width: `10px`,
-        height: `10px`,
+        width: `20px`,
+        height: `20px`,
         backgroundColor: 'red'
       }
     },
@@ -286,7 +286,6 @@ export default {
         return;
 
       if (this.isMobile && !this.isEditingMode) {
-        console.log('is mobile', true);
         // On mobile selection available only in editing mode;
         if (this.highLightNftId) {
           let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
@@ -311,8 +310,8 @@ export default {
       }, 200);
 
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
-      let xPos = Math.floor((event.clientX - canvasRect.left)/10)*10;
-      let yPos = Math.floor((event.clientY - canvasRect.top)/10)*10;
+      let xPos = Math.floor((event.clientX - canvasRect.left)/20)*20;
+      let yPos = Math.floor((event.clientY - canvasRect.top)/20)*20;
       if (xPos < 0 || xPos > 990 || yPos < 0 || yPos > 990)
         return;
 
@@ -328,16 +327,23 @@ export default {
         this.selectionStartY = Math.min(yPos, prevState.selectionStartY);
         this.selectionEndX = Math.max(xPos, prevState.selectionEndX);
         this.selectionEndY = Math.max(yPos, prevState.selectionEndY);
-        while ((this.selectionEndX - this.selectionStartX + 10) * (this.selectionEndY - this.selectionStartY + 10) > 9000) {
+        if (this.selectionEndX - this.selectionStartX > 160) {
+          this.selectionEndX = this.selectionStartX + 160;
+        }
+        if (this.selectionEndY - this.selectionStartY > 160) {
+          this.selectionEndY = this.selectionStartY + 160;
+        }
+
+        while ((this.selectionEndX - this.selectionStartX + 20) * (this.selectionEndY - this.selectionStartY + 20) > 16000) {
           // Funny random
           // Todo, think about better crop
           if (Math.random() > 0.5) {
             if (this.selectionEndX > this.selectionStartX) {
-              this.selectionEndX -= 10;
+              this.selectionEndX -= 20;
             }
           } else {
             if (this.selectionEndY > this.selectionStartY) {
-              this.selectionEndY -= 10;
+              this.selectionEndY -= 20;
             }
           }
         }
@@ -357,8 +363,8 @@ export default {
       let coordX = event.clientX - canvasRect.left;
       let coordY = event.clientY - canvasRect.top;
 
-      let xPos = Math.floor(coordX/10)*10;
-      let yPos = Math.floor(coordY/10)*10;
+      let xPos = Math.floor(coordX/20)*20;
+      let yPos = Math.floor(coordY/20)*20;
       if (xPos < 0 || xPos > 990 || yPos < 0 || yPos > 990) {
         return;
       }
@@ -367,7 +373,7 @@ export default {
         // highlight popup logic
         this.lastMousePosX = coordX;
         this.lastMousePosY = coordY;
-        const index = xPos * 10 + yPos/10;
+        const index = (xPos/20 * 50) + yPos/20;
         const tileInStore = this.$store.state.Provider.tilesByIndex[index];
         if (tileInStore && tileInStore.nftId !== '4294967295' && tileInStore.nftId !== this.highLightNftId && (!this.hideOldCanvas || tileInStore.epoch === this.$store.state.Provider.epoch)) {
           this.highLightNftId = tileInStore.nftId;
@@ -382,14 +388,14 @@ export default {
         return;
       }
 
-      // Some tricky logic to keep max selected piece in range 0..9000 pixels
+      // Some tricky logic to keep max selected piece in range 0..12000 pixels
       if (xPos <= this.selectionEndX) {
         this.selectionEndX = Math.max(xPos, this.selectionStartX);
       } else {
         while (xPos > this.selectionEndX) {
-          let newTilesCount = (this.selectionEndX - this.selectionStartX + 20) * (this.selectionEndY - this.selectionStartY + 10);
-          if (newTilesCount <= 9000) {
-            this.selectionEndX += 10
+          let newTilesCount = (this.selectionEndX - this.selectionStartX + 40) * (this.selectionEndY - this.selectionStartY + 20);
+          if (newTilesCount <= 16000 && (this.selectionEndX - this.selectionStartX < 240)) {
+            this.selectionEndX += 20
           } else {
             break;
           }
@@ -399,9 +405,9 @@ export default {
         this.selectionEndY = Math.max(yPos, this.selectionStartY);
       } else {
         while (yPos > this.selectionEndY) {
-          let newTilesCount = (this.selectionEndX - this.selectionStartX + 10) * (this.selectionEndY - this.selectionStartY + 20);
-          if (newTilesCount <= 9000) {
-            this.selectionEndY += 10;
+          let newTilesCount = (this.selectionEndX - this.selectionStartX + 20) * (this.selectionEndY - this.selectionStartY + 40);
+          if (newTilesCount <= 16000 && (this.selectionEndY - this.selectionStartY < 240)) {
+            this.selectionEndY += 20;
           } else {
             break;
           }
@@ -428,10 +434,13 @@ export default {
       }
     },
     onMouseLeave() {
-      if (this.selectionInProcess) {
-        this.clearSelection();
-      }
       this.highLightNftId = null;
+      if (this.selectionInProcess !== false) {
+        this.onMouseUp();
+      }
+      // if (this.selectionInProcess) {
+      //   this.clearSelection();
+      // }
     },
     claim() {
       if (this.$store.state.Provider.account) {
@@ -448,6 +457,9 @@ export default {
       this.errorMessage = errorMessage;
       this.$modal.hide('claim-modal');
       this.$modal.show('canvas-message-modal');
+      setTimeout(() => {
+        this.clearSelection();
+      }, 5000)
     },
     closeClaimModal(){
       this.$modal.hide('claim-modal');
@@ -476,7 +488,7 @@ export default {
   user-select: none;
   box-sizing: border-box;
   background-image: repeating-linear-gradient(#7000FF 0 1px, transparent 1px 100px), repeating-linear-gradient(90deg, #7000FF 0 1px, transparent 1px 100px);
-  background-size: 10px 10px;
+  background-size: 20px 20px;
   background-color: #21004B;
   position: absolute;
   left: 0;

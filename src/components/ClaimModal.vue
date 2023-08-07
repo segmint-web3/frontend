@@ -21,7 +21,7 @@
                  @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
           <button class="transparent-button">Select Image</button>
         </label>
-        <div v-show="canBeClaimed && !hideOnInputMobile" :style="canvasContainerStyles" class="canvasContainer">
+        <div v-show="showCanvas && !hideOnInputMobile" :style="canvasContainerStyles" class="canvasContainer">
           <canvas :style="canvasContainerStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
         </div>
         <div v-show="canBeClaimed && !hideOnInputMobile" class='slider'>
@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import {encodePixelsToTileColor} from "@/utils/pixels";
+import { encodePixelsToTileColor } from '@/utils/pixels'
 import Blitz from 'blitz-resize';
 import isMobile from 'ismobilejs';
 
@@ -84,10 +84,13 @@ export default {
   props: ['id', 'name', 'x', 'y', 'width', 'height', 'onsuccess', 'onerror', 'onclose'],
   computed: {
     canBeClaimed: function() {
-      return this.coloredTiles.length > 0;
+      return this.image !== null;
+    },
+    showCanvas: function() {
+      return this.image !== null;
     },
     canvasContainerStyles: function () {
-      if (this.$props.width > 300 || this.$props.height > 300) {
+      if (this.$props.width > 200 || this.$props.height > 200) {
         return {
           margin: 'auto',
           width: `${this.$props.width}px`,
@@ -114,7 +117,7 @@ export default {
       } else return "Choosing a picture";
     },
     mintingPrice() {
-      return (parseInt(this.$store.state.Provider.currentTilePrice) * (this.$props.width * this.$props.height / 100) / 1_000_000_000).toFixed(1);
+      return (parseInt(this.$store.state.Provider.currentTilePrice) * (this.$props.width * this.$props.height / 400) / 1_000_000_000).toFixed(1);
     }
   },
   methods: {
@@ -134,8 +137,6 @@ export default {
       ctx.imageSmoothingEnabled = false;
       const width = this.$props.width;
       const height = this.$props.height;
-      ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, width, height);
       const tiles = [];
       const blitz = Blitz.create();
 
@@ -159,7 +160,6 @@ export default {
           output: 'image',
           quality: 1
         }
-        console.log(params)
       } else if (this.resizeMode === 'cover') {
         const aspectRatio = this.image.width / this.image.height;
         const canvasAspectRatio = width / height;
@@ -193,10 +193,21 @@ export default {
         }
       }
       blitz(params).then((img) => {
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, width, height);
         if (img.width === 0 || img.height === 0) {
           // triky for iOS
           if (!retry_num || retry_num < 10) {
-            this.redraw((retry_num || 1) + 1);
+            setTimeout(() => {
+              this.redraw((retry_num || 1) + 1);
+            }, 50);
+          }
+        } else {
+          // tricky for chrome....
+          if (!retry_num || retry_num < 3) {
+            setTimeout(() => {
+              this.redraw((retry_num || 1) + 1);
+            }, 50);
           }
         }
         if (this.resizeMode === 'contain') {
@@ -213,9 +224,9 @@ export default {
           ctx.drawImage(img, 0, 0, width, height);
         }
         // encode image to array of tiles
-        for (let tileY = 0; tileY < height/10; tileY++) {
-          for (let tileX = 0; tileX < width/10; tileX++) {
-            const data = ctx.getImageData(tileX*10, tileY*10, 10, 10);
+        for (let tileX = 0; tileX < width/20; tileX++) {
+          for (let tileY = 0; tileY < height/20; tileY++) {
+            const data = ctx.getImageData(tileX*20, tileY*20, 20, 20);
             tiles.push(encodePixelsToTileColor(data.data))
           }
         }
@@ -226,10 +237,11 @@ export default {
       const img = new Image;
       img.onload = function() {
         this.image = img;
-        this.redraw();
+        setTimeout(() => {
+          this.redraw();
+        }, 100)
       }.bind(this)
       img.src = URL.createObjectURL(this.$refs.file.files[0]);
-
     },
     claim(event) {
       event.preventDefault();
@@ -243,9 +255,9 @@ export default {
         this.linkValid = true;
         let promise;
         if (this.$props.id) {
-          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id, x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.trim()});
+          promise = this.$store.dispatch('Provider/redrawNft', {id: this.$props.id,  tiles: this.coloredTiles, description, url: url.trim()});
         } else {
-          promise = this.$store.dispatch('Provider/claimTiles', {x: this.$props.x, y: this.$props.y, width: this.$props.width, height: this.$props.height, tiles: this.coloredTiles, description, url: url.trim()});
+          promise = this.$store.dispatch('Provider/claimTiles', {tileStartX: this.$props.x/20, tileStartY: this.$props.y/20, tileEndX: (this.$props.x + this.$props.width)/20, tileEndY: (this.$props.y + this.$props.height)/20, tiles: this.coloredTiles, description, url: url.trim()});
         }
 
         if (promise) {
@@ -255,9 +267,11 @@ export default {
             this.$props.onsuccess();
           }).catch((err) => {
             this.claimInProgress = false;
+            console.log('on error', err);
             if (!this.$props.id && err.code !== 3) {
-              console.log('on error');
               this.onerror(err.message);
+            } else {
+              this.redraw();
             }
           })
         }
@@ -273,6 +287,7 @@ export default {
       this.description = '';
       this.link = '';
       this.coloredTiles = [];
+      this.image = null;
     },
     inputLink(){
       this.linkValid = true;
@@ -326,7 +341,7 @@ canvas {
 
 @media only screen and (min-width: 500px) {
   .modal-content {
-    top: 15%;
+    top: 5%;
     left: calc(50% - 150px);
     min-width: 300px;
     min-height: 300px;

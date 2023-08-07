@@ -2,7 +2,7 @@
   <div class="nft-container">
     <div :style="canvasStyles" class="canvas-container">
       <a :href="scanLink" target='_blank'>
-        <canvas :style="canvasStyles" ref="canvas" :width="this.$props.width" :height="this.$props.height"></canvas>
+        <canvas :style="canvasStyles" ref="canvas" :width="this.width" :height="this.height"></canvas>
       </a>
     </div>
     <div class='nft-info-container'>
@@ -47,10 +47,22 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
-  props: ['id', 'address', 'x', 'y', 'width', 'height', 'description', 'url', 'onedit', 'lockedAmount', 'onError'],
+  props: ['id', 'address', 'tileStartX', 'tileStartY', 'tileEndX', 'tileEndY', 'description', 'url', 'onedit', 'lockedAmount', 'onError'],
   computed: {
+    x: function() {
+      return this.$props.tileStartX * 20;
+    },
+    y: function() {
+      return this.$props.tileStartY * 20;
+    },
+    width: function() {
+      return (this.$props.tileEndX - this.$props.tileStartX) * 20;
+    },
+    height: function() {
+      return (this.$props.tileEndY - this.$props.tileStartY) * 20;
+    },
     canvasStyles: function () {
-      const height = 250/this.$props.width * this.$props.height;
+      const height = 250/this.width * this.height;
       return {
         margin: '3px auto',
         width: `100%`,
@@ -74,9 +86,9 @@ export default {
     },
     isFullyVisible: function() {
       let fullyVisible = true;
-      for (let x = this.$props.x; x < this.$props.x + this.$props.width; x += 10) {
-        for (let y = this.$props.y; y < this.$props.y + this.$props.height; y += 10) {
-          const index = x * 10 + y/10;
+      for (let x = this.$props.tileStartX; x < this.$props.tileEndX; x ++) {
+        for (let y = this.$props.tileStartY; y < this.$props.tileEndY; y ++) {
+          const index = x * 50 + y;
           if (this.$store.state.Provider.tilesByIndex[index].nftId !== this.$props.id) {
             fullyVisible = false;
             break;
@@ -89,9 +101,9 @@ export default {
     },
     isPartialVisible: function() {
       let isPartialVisible = false;
-      for (let x = this.$props.x; x < this.$props.x + this.$props.width; x += 10) {
-        for (let y = this.$props.y; y < this.$props.y + this.$props.height; y += 10) {
-          const index = x * 10 + y/10;
+      for (let x = this.$props.tileStartX; x < this.$props.tileEndX; x ++) {
+        for (let y = this.$props.tileStartY; y < this.$props.tileEndY; y ++) {
+          const index = x * 50 + y;
           if (this.$store.state.Provider.tilesByIndex[index].nftId === this.$props.id) {
             isPartialVisible = true;
             break;
@@ -109,7 +121,7 @@ export default {
   methods: {
     edit() {
       if (this.isPartialVisible) {
-        this.$props.onedit(this.$props.id, this.$props.x, this.$props.y, this.$props.width, this.$props.height);
+        this.$props.onedit(this.$props.id, this.x, this.y, this.width, this.height);
       } else {
         this.onError(`Your nft was completely covered by new NFTs and become invisible. You can burn it to get locked value back.`);
       }
@@ -126,21 +138,21 @@ export default {
       }
     },
     floorPrice() {
-      return this.$props.width * this.$props.height
+      return this.width * this.height
     },
     redraw() {
       const ctx = this.$refs.canvas.getContext('2d');
-      const imageData = ctx.createImageData(10, 10);
-      for (let x = this.$props.x; x < this.$props.x + this.$props.width; x += 10) {
-        for (let y = this.$props.y; y < this.$props.y + this.$props.height; y += 10) {
-          const index = x * 10 + y/10;
+      const imageData = ctx.createImageData(20, 20);
+      for (let x = this.$props.tileStartX; x < this.$props.tileEndX; x ++) {
+        for (let y = this.$props.tileStartY; y < this.$props.tileEndY; y ++) {
+          const index = x * 50 + y;
           const tileInStore = this.$store.state.Provider.tilesByIndex[index];
           if (tileInStore && tileInStore.nftId  === this.$props.id) {
             imageData.data.set(tileInStore.pixels);
-            ctx.putImageData(imageData, x - this.$props.x, y - this.$props.y);
+            ctx.putImageData(imageData, (x - this.$props.tileStartX)*20, (y - this.$props.tileStartY)*20);
           } else {
             imageData.data.set(getMainForegroundTileColor());
-            ctx.putImageData(imageData, x - this.$props.x, y - this.$props.y);
+            ctx.putImageData(imageData, (x - this.$props.tileStartX)*20, (y - this.$props.tileStartY)*20);
           }
         }
       }

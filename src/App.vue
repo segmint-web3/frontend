@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class='pageClass'>
     <rules-modal name='rules-modal' />
     <MyNftComponent v-if='myNftOpened' :onClose='closeMyNfts'/>
     <HeaderComponent :openMyNfts='openMyNfts' :openFaq='openFaq' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
@@ -25,6 +25,7 @@ import HeaderComponent from './components/HeaderComponent.vue'
 import CanvasComponent from './components/CanvasComponent.vue'
 import MyNftComponent from "@/components/MyNftComponent.vue";
 import RulesModal from "@/components/RulesModal.vue";
+import { AvailablePages } from '@/utils/pages'
 
 export default {
   name: 'App',
@@ -36,6 +37,7 @@ export default {
   },
   data() {
     return {
+      pageClass: '',
       publicPath: process.env.BASE_URL,
       myNftOpened: false,
       isEditingMode: false,
@@ -51,21 +53,36 @@ export default {
     }
   },
   mounted() {
-    this.$store.dispatch('Provider/init', {});
+    const validPages = AvailablePages;
+    let pageInUrl = window.location.hash.slice(1);
+    console.log('pageInUrl');
+    if (validPages.indexOf(pageInUrl) === -1) {
+      pageInUrl = localStorage.getItem('page');
+    }
+    if (validPages.indexOf(pageInUrl) === -1) {
+      pageInUrl = validPages[Math.floor(Math.random() * 3)];
+    }
+    localStorage.setItem('page', pageInUrl);
+    window.location.hash = pageInUrl;
+    this.pageClass = 'global-page-style ' + pageInUrl;
+    this.$store.dispatch('Provider/init', {page: pageInUrl});
     this.$modal.show('rules-modal');
   },
   methods: {
     closeMyNfts() {
       this.myNftOpened = false;
     },
-    openMyNfts() {
+    openMyNfts(e) {
       this.myNftOpened = true;
+      e.preventDefault();
     },
-    openFaq() {
+    openFaq(e) {
       this.$modal.show('rules-modal');
+      e.preventDefault();
     },
-    toggleEditingMode() {
+    toggleEditingMode(e) {
       this.isEditingMode = !this.isEditingMode;
+      e.preventDefault();
     }
   }
 }
@@ -122,4 +139,14 @@ p.loading-text {
     height: 200px;
   }
 }
+.global-page-style.desert .loading-fullscreen {
+  background-color: rgba(112, 49, 49, 1);
+}
+.global-page-style.ocean .loading-fullscreen {
+  background-color: rgba(52, 40, 126, 1);
+}
+.global-page-style.forest .loading-fullscreen {
+  background-color: rgba(19, 82, 67, 1);
+}
+
 </style>

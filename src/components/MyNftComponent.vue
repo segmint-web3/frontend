@@ -9,7 +9,7 @@
       </div>
       <div class='my-nft-container'>
         <div v-for="nft in nfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :onError='onError' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :x='nft.x' :y='nft.y' :width='nft.width' :height='nft.height' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+          <OneNftComponent :onError='onError' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
       </div>
     </div>

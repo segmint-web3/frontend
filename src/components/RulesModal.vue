@@ -52,7 +52,7 @@ export default {
       return this.$store.state.Provider.epoch;
     },
     price: function() {
-      return (parseInt(this.$store.state.Provider.currentTilePrice) / 100 / 1_000_000_000).toFixed(3)
+      return (parseInt(this.$store.state.Provider.currentTilePrice) / 400 / 1_000_000_000).toFixed(4)
     }
   },
   methods: {
