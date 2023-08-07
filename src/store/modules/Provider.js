@@ -30,11 +30,11 @@ const Pages ={
 const nftCode = '';
 
 // wallet to collection 1, collection nft 0.5
-const MaximumFwdFeeForBigMint = 1.5; // 0.15;
+const MaximumFwdFeeForBigMint = 0.15; // 0.15 / 1.5;
 // 1 for deploy nft, 1 create nft,
-const OneNftMintingCost = 1; // 0.8;
+const OneNftMintingCost = 0.8; // 0.8 / 1;
 // Whole block, 1 for se, 0.2 for venom.
-const MaximumClaimGasPrice = 1; //  0.15;
+const MaximumClaimGasPrice = 0.2; //  0.15;
 
 const BurnNftValue = 1.1;
 
