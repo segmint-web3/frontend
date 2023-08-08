@@ -99,7 +99,7 @@ async function loadCollection(provider, page, commit) {
               epoch: event.data.nftEpoch,
               x: x * 20,
               y: y * 20,
-              pixels: tryToDecodeTile(event.data.colors)
+              pixels: blockedNftById[event.data.nftId] ? getMainBackgroundTileColor() : tryToDecodeTile(event.data.colors),
             }
             if (stateLoaded) {
               commit('Provider/setTile', { tile: tile });
@@ -125,7 +125,7 @@ async function loadCollection(provider, page, commit) {
                   epoch: event.data.nftEpoch,
                   x: tx * 20,
                   y: ty * 20,
-                  pixels: tryToDecodeTile(event.data.colors[colorsIndex])
+                  pixels: blockedNftById[event.data.nftId] ? getMainBackgroundTileColor() : tryToDecodeTile(event.data.colors[colorsIndex])
                 }
                 colorsIndex++;
                 if (stateLoaded) {
@@ -208,7 +208,7 @@ async function loadCollection(provider, page, commit) {
         epoch: epoch,
         x: x * 20,
         y: y * 20,
-        pixels: tryToDecodeTile(elem[1].colors)
+        pixels: blockedNftById[nftId] ? getMainBackgroundTileColor() : tryToDecodeTile(elem[1].colors)
       };
     }
     await new Promise((resolve) => setTimeout(resolve, 1));
