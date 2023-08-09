@@ -15,15 +15,15 @@ import {BN} from "bn.js";
 const Pages ={
   ocean: {
     collection: new Address("0:1a98a60471cb91af9f7c47063c2d2a5c4df325b28d53f3b3b2d05bcc5e6b81b8"),
-    blocklist: new Address("0:ccce4d99f3d55202b82c8c118ed764c62564c4046c2f020a0161f3991612fee6")
+    blocklist: new Address("0:84ce0db6019a06bf3cc8b1ac7a626993981bca23d7c6e97843735dd383093a28")
   },
   desert: {
     collection: new Address("0:7f640c417b44e1a0bd870b502a47292572b78a33dfccc6c63c67c171d6505aaa"),
-    blocklist: new Address("0:3166eabbd9339250a9d2faf4b24a6d9bebd432042127664c9fbb813a7f74bf68")
+    blocklist: new Address("0:28fa45ac10075d1296813589b45bfa48e33ab0faaef0ea9f743170b299b293f4")
   },
   forest: {
     collection: new Address("0:e607b54636f6d26b92f52f4c8ad2e013eee4415ef151f0881e275abf79aaebd7"),
-    blocklist: new Address("0:ac4487ff0bef72c0579b6527f1378c0e2cfbe412e91be672d60c10af4ebe300d")
+    blocklist: new Address("0:9d3d68646544dd2344ff4e18220f5cd466ec8cb2c8380e31c0676978c97dd8df")
   }
 }
 
@@ -293,6 +293,7 @@ async function fetchUserNft(id, nftTvc, userAddress, provider, commit) {
 }
 
 async function fetchUserNfts(userAddress, provider, nftTvc, collectionContract, collectionCachedState, commit) {
+
   console.log('Fetch users nfts!!!');
   const {codeHash: indexCodeHash} = await collectionContract.methods.getNftIndexCodeHash({answerId: 0, _owner: userAddress}).call({responsible: true, cachedState: collectionCachedState})
   console.log('Got init code hash');
@@ -301,7 +302,6 @@ async function fetchUserNfts(userAddress, provider, nftTvc, collectionContract, 
 
   let nfts = [];
   for (let indexAddress of userNftsContracts) {
-    console.log('Iterate', indexAddress);
     try {
       let contract = new provider.Contract(IndexAbi, indexAddress);
       let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
@@ -406,7 +406,7 @@ export const Provider = {
       if (state.blockedNftById[tile.nftId] === true) {
         state.tilesByIndex[tile.index] = {
           ...tile,
-          pixels: getMainForegroundTileColor()
+          pixels: getMainBackgroundTileColor()
         }
       } else {
         state.tilesByIndex[tile.index] = tile;
@@ -487,16 +487,16 @@ export const Provider = {
     addBlockedNft(state, {id}) {
       state.blockedNftById[id] = true;
       if (state.collectionLoaded) {
-        for (let y = 0; y < 100; y++) {
-          for (let x = 0; x < 100; x++) {
-            let index = x * 100 + y;
+        for (let y = 0; y < 50; y++) {
+          for (let x = 0; x < 50; x++) {
+            let index = x * 50 + y;
             if (state.tilesByIndex[index].nftId === id) {
               const tile = {
                 index: index,
                 nftId: id,
                 epoch: state.tilesByIndex[index].epoch,
-                x: x * 10,
-                y: y * 10,
+                x: x * 20,
+                y: y * 20,
                 pixels: getMainBackgroundTileColor()
               }
               state.tilesByIndex[index] = tile;
@@ -753,7 +753,6 @@ export const Provider = {
           }
         }).then(function(data) {
           let nftContract = new state.standaloneProvider.Contract(NftAbi, data.address);
-          console.log(data.address);
           return nftContract.methods.getNftCustomData({
             answerId: 0
           }).call({
