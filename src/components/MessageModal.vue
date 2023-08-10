@@ -32,7 +32,7 @@ export default {
 
 <style scoped>
 .message-modal {
-  background-color: rgb(59 0 135 / 50%);
+  background-color: rgb(255 237 108 / 50%);
   z-index: 9;
 }
 .modal-content {
@@ -41,9 +41,9 @@ export default {
   left: calc(50% - 166px);
   flex-direction: column;
   min-width: 300px;
-  background-color: #21004B;
-  border: 10px solid #7000FF;
-  color: #CCFF00;
+  background-color: var(--dark-night);
+  border: 10px solid var(--sunrise);
+  color: var(--yellow);
 }
 .message-modal-content {
   flex-direction: column;

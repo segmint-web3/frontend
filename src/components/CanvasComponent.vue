@@ -10,7 +10,7 @@
       <div class="hover-popup" :style="highLightPopupStyles">
         {{highlightNftDescription}}
       </div>
-      <div :style="selectionHeaderStyle">
+      <div class="selection-header" :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}
       </div>
       <div :style="selectionStyles"></div>
@@ -147,7 +147,7 @@ export default {
           top: `${this.selectionStartY}px`,
           width: `${this.selectionEndX - this.selectionStartX + 20}px`,
           height: `${this.selectionEndY - this.selectionStartY + 20}px`,
-          backgroundColor: 'rgba(204,255,0,0.5)'
+          backgroundColor: 'rgba(255,237,108,0.5)'
         }
       }
       return {
@@ -156,34 +156,22 @@ export default {
         top: 0,
         width: 0,
         height: 0,
-        backgroundColor: 'rgba(204,255,0,0.5)'
+        backgroundColor: 'rgba(255,237,108,0.5)'
       }
     },
     selectionHeaderStyle: function () {
       if (this.selectionStartX !== null) {
         if (this.selectionStartY > 100 ) {
           return {
-            position: 'absolute',
             left: `${(this.selectionStartX + this.selectionEndX)/2 - 20}px`,
-            top: `${this.selectionStartY - 25}px`,
-            width: `60px`,
-            height: `20px`,
-            backgroundColor: '#CCFF01',
-            color: '#21004B',
-            textAlign: 'center'
+            top: `${this.selectionStartY - 25}px`
           }
           // Above selection
         } else {
           // Below selection
           return {
-            position: 'absolute',
             left: `${(this.selectionStartX + this.selectionEndX)/2 - 20}px`,
-            top: `${this.selectionEndY + 25}px`,
-            width: `60px`,
-            height: `20px`,
-            backgroundColor: '#CCFF01',
-            color: '#21004B',
-            textAlign: 'center'
+            top: `${this.selectionEndY + 25}px`
           }
         }
       } else {
@@ -194,7 +182,6 @@ export default {
           top: 0,
           width: 0,
           height: 0,
-          backgroundColor: 'rgba(204,255,0,0.5)'
         }
       }
     }
@@ -475,6 +462,7 @@ export default {
   height: 100%;
   width: 100%;
   overflow: scroll;
+  background-color: var(--midnight);
 }
 .canvas-container {
   margin: 100px auto 50px;
@@ -482,14 +470,15 @@ export default {
   width: 1000px;
   height: 1000px;
   user-select: none;
+  background-color: var(--midnight);
 }
 
 .main-canvas {
   user-select: none;
   box-sizing: border-box;
-  background-image: repeating-linear-gradient(#7000FF 0 1px, transparent 1px 100px), repeating-linear-gradient(90deg, #7000FF 0 1px, transparent 1px 100px);
+  background-image: repeating-linear-gradient(var(--sunrise) 0 1px, transparent 1px 100px), repeating-linear-gradient(90deg, var(--sunrise) 0 1px, transparent 1px 100px);
   background-size: 20px 20px;
-  background-color: #21004B;
+  background-color: var(--dark-night);
   position: absolute;
   left: 0;
   right: 0;
@@ -531,10 +520,19 @@ export default {
 }
 
 .hover-popup {
-  color: #CCFF01;
+  color: var(--yellow);
   position: absolute;
   font-weight: bold;
   padding: 10px;
-  background-color: #3B0087;
+  background-color: var(--midnight);
+}
+
+.selection-header {
+  position: absolute;
+  width: 60px;
+  height: 20px;
+  background-color: var(--yellow);
+  color: var(--dark-night);
+  text-align: center;
 }
 </style>

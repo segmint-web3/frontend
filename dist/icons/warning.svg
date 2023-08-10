@@ -2,7 +2,7 @@
     <path fill-rule="evenodd" clip-rule="evenodd" d="M24.7422 3.47083H6.25781V3.47091H3.61719V27.2376H6.25793V27.2375H24.743V27.2375H27.3829V3.47083H24.743H24.7422ZM24.7422 6.11157H6.25793V24.5968H24.7422V6.11157ZM14.1797 21.956H16.8204V19.3153H14.1797V21.956ZM16.8204 16.6745H14.1797V8.7523H16.8204V16.6745Z" fill="url(#paint0_linear_513_15410)"/>
     <defs>
         <linearGradient id="paint0_linear_513_15410" x1="15.5362" y1="3.47083" x2="34.1653" y2="19.1519" gradientUnits="userSpaceOnUse">
-            <stop offset="0.864583" stop-color="#CCFF00"/>
+            <stop offset="0.864583" stop-color="#FFED6C"/>
         </linearGradient>
     </defs>
 </svg>

@@ -164,12 +164,12 @@ export default {
 <style scoped>
 .nft-container {
   width: 254px;
-  border: solid 2px #7000FF;
+  border: solid 2px var(--sunrise);
   padding-bottom: 10px;
 }
 .canvas-container {
   width: 100%;
-  border-bottom: solid 2px #7000FF;
+  border-bottom: solid 2px var(--sunrise);
   margin-bottom: 3px;
 }
 canvas {
@@ -195,7 +195,7 @@ canvas {
 }
 
 .nft-info-title a {
-  color: var(--primary) !important;
+  color: var(--yellow) !important;
   font-family: "ChakraPetch", Helvetica, Arial;
   font-style: normal;
   font-weight: 700;
@@ -214,14 +214,14 @@ canvas {
 }
 
 .nft-info-button {
-  border: solid 2px var(--primary);
+  border: solid 2px var(--yellow);
   cursor: pointer;
   height: 22px;
   padding: 0px 5px;
   margin-right: 5px;
 }
 .nft-info-button span {
-  color: var(--primary) !important;
+  color: var(--yellow) !important;
   font-family: "ChakraPetch", Helvetica, Arial;
   font-style: normal;
   font-weight: 700;

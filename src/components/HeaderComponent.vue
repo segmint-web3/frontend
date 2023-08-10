@@ -126,10 +126,10 @@ export default {
   height: 90px;
   padding: 10px 150px;
   box-sizing: border-box;
-  background: #7000FF;
+  background: var(--sunrise);
   z-index: 8;
-  color: #CCFF00;
-  border-bottom: solid 2px #CCFF00;
+  color: var(--yellow);
+  border-bottom: solid 2px var(--yellow);
 }
 
 .logo {
@@ -143,13 +143,13 @@ export default {
   box-sizing: border-box;
 }
 .page-button.desert {
-  background-color: rgba(112, 49, 49, 1);
+  background-color: #4D0E0E;
 }
 .page-button.forest {
-  background-color: rgba(19, 82, 67, 1);
+  background-color: #002D1E;
 }
 .page-button.ocean {
-  background-color: rgba(52, 40, 126, 1);
+  background-color: #0E015C;
 }
 .page-button-container {
   position: relative;
@@ -164,7 +164,7 @@ export default {
 }
 
 .mobile-open-page-button {
-  text-transform: capitalize;;
+  text-transform: capitalize;
   padding: 5px 10px;
   margin-right: 10px;
 }
@@ -196,7 +196,7 @@ export default {
 .dot {
   width: 8px;
   height: 8px;
-  background-color: #CCFF00;
+  background-color: var(--yellow);
   margin: 20px;
 }
 
@@ -210,7 +210,7 @@ export default {
 }
 .coins {
   text-align: end;
-  color: var(--primary);
+  color: var(--yellow);
 }
 @media screen and (max-width: 1280px){
   .header-wrapper {
@@ -249,7 +249,7 @@ export default {
   left: 0;
   display: flex;
   flex-direction: column;
-  background: #7000FF;
+  background: var(--sunrise);
   padding: 10px;
   width: 215px;
 }

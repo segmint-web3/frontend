@@ -87,12 +87,12 @@ export default {
   right: 0;
   bottom: 0;
   width: 300px;
-  background: #7000FF;
+  background: var(--sunrise);
   z-index: 8;
-  color: #CCFF00;
+  color: var(--yellow);
 }
 .my-nft-header {
-  color: var(--primary);
+  color: var(--yellow);
   font-family: "ChakraPetch", Helvetica, Arial;
   font-size: 24px;
   font-weight: 700;
@@ -108,8 +108,8 @@ export default {
   width: 100%;
   display: flex;
   flex-direction: column;
-  border: solid 8px #7000FF;
-  background: #21004B;
+  border: solid 8px var(--sunrise);
+  background: var(--dark-night);
   box-sizing: border-box;
   overflow-y: scroll;
 }

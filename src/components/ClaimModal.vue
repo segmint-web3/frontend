@@ -305,14 +305,14 @@ canvas {
 }
 
 .claim-modal {
-  background-color: rgb(59 0 135 / 50%);
+  background-color: rgb(255 237 108 / 50%);
 }
 .claim-modal-header {
   width: 100%;
   padding: 0 10px 10px 10px;
   text-align: center;
-  background: #7000FF;
-  color: var(--primary);
+  background: var(--sunrise);
+  color: var(--yellow);
   font-family: "ChakraPetch", Helvetica, Arial;
   font-size: 24px;
   line-height: 30px;
@@ -333,9 +333,9 @@ canvas {
   min-width: 100%;
   min-height: 100%;
   flex-direction: column;
-  background-color: #21004B;
-  border: 10px solid #7000FF;
-  color: #CCFF00;
+  background-color: var(--dark-night);
+  border: 10px solid var(--sunrise);
+  color: var(--yellow);
   box-sizing: border-box;
 }
 
@@ -345,7 +345,7 @@ canvas {
     left: calc(50% - 150px);
     min-width: 300px;
     min-height: 300px;
-    border: 10px solid #7000FF;
+    border: 10px solid var(--sunrise);
   }
 }
 
@@ -399,8 +399,8 @@ form button {
   right: 0;
   top: 0;
   bottom: 0;
-  background-color: #21004B;
-  color: var(--primary);
+  background-color: var(--dark-night);
+  color: var(--yellow);
   font-weight: 700;
   display: flex;
   justify-content: center;
@@ -427,10 +427,10 @@ form button {
   width: 44px;
   height: 44px;
   margin: 8px;
-  border: 8px solid var(--primary);
+  border: 8px solid var(--yellow);
   border-radius: 50%;
   animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  border-color: var(--primary) transparent transparent transparent;
+  border-color: var(--yellow) transparent transparent transparent;
 }
 .lds-ring div:nth-child(1) {
   animation-delay: -0.45s;
@@ -471,8 +471,8 @@ form button {
 
 .slider label {
   float:left;
-  color: var(--primary);
-  //background: var(--violet);
+  color: var(--yellow);
+  background: transparent;
   width: calc(33.333% - 1px);
   position:relative;
   padding: 10px 0px 10px;
@@ -480,7 +480,7 @@ form button {
   transition:color 0.3s;
   cursor:pointer;
   -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
-  border: 2px solid var(--primary);
+  border: 2px solid var(--yellow);
   box-sizing: border-box;
 }
 
@@ -490,8 +490,8 @@ form button {
 }
 
 .slider label.selected {
-  color: var(--violet);
-  background: var(--primary);
+  color: var(--midnight);
+  background: var(--yellow);
 }
 
 </style>

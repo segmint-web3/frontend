@@ -1,10 +1,24 @@
 :root {
-  --primary: #CCFF00;
-  --primary-transparent: #ccff0080;
-  --violet: #7000FF;
-  --dark-blue: #3B0087;
-  --dark: #21004B;
+  /* --dark: #21004B; */
+
+  --yellow: #FFED6C;
 }
+.ocean {
+  --sunrise: #5C48D2;
+  --midnight: #34287E;
+  --dark-night: #0E015C;
+}
+.forest {
+  --sunrise: #5B9A8B;
+  --midnight: #135243;
+  --dark-night: #002D1E;
+}
+.desert {
+  --sunrise: #995A5A;
+  --midnight: #703131;
+  --dark-night: #4D0E0E;
+}
+
 .flex {
   display: flex;
   align-items: center;
@@ -13,16 +27,16 @@
   padding: 5px 10px;
   font-size: 24px;
   font-weight: 700;
-  color: var(--violet);
-  background: var(--primary);
-  border: 4px solid var(--primary);
+  color: var(--midnight);
+  background: var(--yellow);
+  border: 4px solid var(--yellow);
   cursor: pointer;
   font-family: "ChakraPetch", Helvetica, Arial;
 }
 .primary-button:active {
-  color: var(--primary);
-  background-color: var(--dark-blue);
-  border: 4px solid var(--primary);
+  color: var(--yellow);
+  background-color: var(--midnight);
+  border: 4px solid var(--yellow);
 }
 
 .secondary-button {
@@ -32,16 +46,16 @@
   text-decoration: none;
   font-size: 24px;
   font-weight: 500;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  color: var(--yellow);
+  border: 2px solid var(--yellow);
   background-color: transparent;
   cursor: pointer;
   font-family: "ChakraPetch", Helvetica, Arial;
 }
 .secondary-button:active {
-  color: var(--primary);
-  background-color: var(--dark-blue);
-  border: 2px solid var(--dark-blue);
+  color: var(--yellow);
+  background-color: var(--midnight);
+  border: 2px solid var(--midnight);
 }
 
 .transparent-button {
@@ -51,8 +65,8 @@
   text-decoration: none;
   font-size: 24px;
   font-weight: 700;
-  color: var(--primary);
-  border: 2px solid var(--primary);
+  color: var(--yellow);
+  border: 2px solid var(--yellow);
   background-color: transparent;
   cursor: pointer;
   font-family: "ChakraPetch", Helvetica, Arial;
@@ -63,15 +77,15 @@
   height: 24px;
   font-size: 12px;
   background-color: transparent;
-  border: 2px solid var(--violet);
-  color: var(--primary);
+  border: 2px solid var(--sunrise);
+  color: var(--yellow);
   border-radius: 0;
   outline: none;
   font-family: "ChakraPetch", Helvetica, Arial;
 }
 
 .input:focus {
-  border: 2px solid var(--primary);
+  border: 2px solid var(--yellow);
 }
 .lds-ring {
   display: inline-block;
@@ -86,10 +100,10 @@
   width: 64px;
   height: 64px;
   margin: 8px;
-  border: 8px solid var(--primary);
+  border: 8px solid var(--yellow);
   border-radius: 50%;
   animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
-  border-color: var(--primary) transparent transparent transparent;
+  border-color: var(--yellow) transparent transparent transparent;
 }
 .lds-ring div:nth-child(1) {
   animation-delay: -0.45s;
@@ -113,10 +127,10 @@
   width: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #3B0087;
+  background: var(--midnight);
 }
 ::-webkit-scrollbar-thumb {
-  background: #7000FF;
+  background: var(--sunrise);
 }
 ::-webkit-scrollbar-corner {
   background: rgba(0,0,0,0);

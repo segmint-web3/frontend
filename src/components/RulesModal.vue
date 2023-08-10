@@ -82,9 +82,9 @@ export default {
   width: 450px;
   max-height: 95%;
   overflow-y: scroll;
-  background-color: #21004B;
-  border: 10px solid #7000FF;
-  color: #CCFF01;
+  background-color: var(--dark-night);
+  border: 10px solid var(--sunrise);
+  color: var(--yellow);
   box-sizing: border-box;
   padding: 40px;
 }
@@ -124,14 +124,15 @@ export default {
   font-weight: 500;
   font-size: 16px;
   line-height: 16px;
-  color: #CCFF01;
+  color: var(--yellow);
   margin: 0;
 }
 .instructions-line {
   margin: 24px 0;
   width: 100%;
   height: 1px;
-  background-color: rgba(204, 255, 1, 0.5);
+  background-color: var(--yellow);
+  opacity: 0.5;
 }
 .season {
  margin-top: 24px;

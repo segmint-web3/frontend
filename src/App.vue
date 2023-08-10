@@ -97,7 +97,6 @@ export default {
 html, body {
   padding: 0;
   margin: 0;
-  background-color: #3B0087;
   box-sizing: border-box;
 }
 #app {
@@ -115,8 +114,8 @@ html, body {
   right: 0;
   bottom: 0;
   left: 0;
-  background-color: #7000FF;
-  color: var(--primary);
+  background-color: var(--sunrise);
+  color: var(--yellow);
   display: flex;
   flex-direction: column;
   justify-content: space-around;
@@ -139,14 +138,8 @@ p.loading-text {
     height: 200px;
   }
 }
-.global-page-style.desert .loading-fullscreen {
-  background-color: rgba(112, 49, 49, 1);
-}
-.global-page-style.ocean .loading-fullscreen {
-  background-color: rgba(52, 40, 126, 1);
-}
-.global-page-style.forest .loading-fullscreen {
-  background-color: rgba(19, 82, 67, 1);
+.global-page-style .loading-fullscreen {
+  background-color: var(--midnight);
 }
 
 </style>
