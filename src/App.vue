@@ -7,6 +7,7 @@
     <div v-if='!collectionPreLoaded' class='loading-fullscreen'>
       <div>
         <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="loading-logo">
+        <h2 class='collection-name-header'>{{collectionName}} collection</h2>
         <p>Take your place in blockchain history!</p>
         <p class="loading-text">Loading collection...</p>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -38,6 +39,7 @@ export default {
   data() {
     return {
       pageClass: '',
+      collectionName: '',
       publicPath: process.env.BASE_URL,
       myNftOpened: false,
       isEditingMode: false,
@@ -63,6 +65,7 @@ export default {
       pageInUrl = validPages[Math.floor(Math.random() * 3)];
     }
     localStorage.setItem('page', pageInUrl);
+    this.collectionName = pageInUrl;
     window.location.hash = pageInUrl;
     this.pageClass = 'global-page-style ' + pageInUrl;
     this.$store.dispatch('Provider/init', {page: pageInUrl});
@@ -128,7 +131,12 @@ html, body {
   margin: 0;
 }
 p.loading-text {
-  margin: 60px 0 20px;
+  margin: 30px 0 20px;
+}
+.loading-fullscreen .collection-name-header {
+  font-size: 36px;
+  margin-top: -15px;
+  text-transform: capitalize;
 }
 .loading-logo {
   height: 300px;

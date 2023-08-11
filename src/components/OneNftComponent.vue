@@ -1,8 +1,11 @@
 <template>
   <div class="nft-container">
     <div :style="canvasStyles" class="canvas-container">
-      <a :href="scanLink" target='_blank'>
+      <a v-if='$props.collectionName === $store.state.Provider.page' :href="scanLink" target='_blank'>
         <canvas :style="canvasStyles" ref="canvas" :width="this.width" :height="this.height"></canvas>
+      </a>
+      <a v-else :href="scanLink" target='_blank'>
+        <img width='100%' height='100%' :src='`${publicPath}collection_banner_${$props.collectionName}.png`' />
       </a>
     </div>
     <div class='nft-info-container'>
@@ -12,7 +15,7 @@
         </a>
       </div>
     </div>
-    <div class="nft-buttons">
+    <div class="nft-buttons" v-show='isFromShowedCollection'>
       <div class='secondary-button nft-info-button' @click='edit'>
         <span>
           Edit
@@ -26,9 +29,20 @@
         <img :src="`${publicPath}icons/burn.svg`" alt="burn" class="burn-icon">
       </div>
     </div>
+    <div class="nft-buttons" v-show='!isFromShowedCollection'>
+      <div class='secondary-button nft-info-button' @click='goToNftPage'>
+        <span>
+          Go to {{this.collectionNameBeauty}} collection
+        </span>
+        <img :src="`${publicPath}icons/open_page.svg`" alt="open" class="open-icon">
+      </div>
+    </div>
     <div class='nft-subinfo-container'>
-      <p>
+      <p v-show='isFromShowedCollection'>
         {{ this.visiblyText }}
+      </p>
+      <p v-show='!isFromShowedCollection'>
+        This NFT is from {{this.collectionNameBeauty}} collection
       </p>
       <p>
         Locked value: {{this.beautyValue}} Venom
@@ -47,7 +61,7 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
-  props: ['id', 'address', 'tileStartX', 'tileStartY', 'tileEndX', 'tileEndY', 'description', 'url', 'onedit', 'lockedAmount', 'onError'],
+  props: ['id', 'collectionName', 'address', 'tileStartX', 'tileStartY', 'tileEndX', 'tileEndY', 'description', 'url', 'onedit', 'lockedAmount', 'onError'],
   computed: {
     x: function() {
       return this.$props.tileStartX * 20;
@@ -61,12 +75,26 @@ export default {
     height: function() {
       return (this.$props.tileEndY - this.$props.tileStartY) * 20;
     },
+    isFromShowedCollection() {
+      return this.$props.collectionName === this.$store.state.Provider.page;
+    },
+    collectionNameBeauty() {
+      return this.$props.collectionName.slice(0, 1).toUpperCase() + this.$props.collectionName.slice(1);
+    },
     canvasStyles: function () {
-      const height = 250/this.width * this.height;
-      return {
-        margin: '3px auto',
-        width: `100%`,
-        height: `${height}px`
+      if (this.isFromShowedCollection) {
+        const height = 250/this.width * this.height;
+        return {
+          margin: 'auto',
+          width: `100%`,
+          height: `${height}px`
+        }
+      } else {
+        return {
+          margin: 'auto',
+          width: `100%`,
+          height: `100%`
+        }
       }
     },
     scanLink: function() {
@@ -81,7 +109,7 @@ export default {
       } else if (this.isPartialVisible) {
         return `This segment is partially visible.`;
       } else {
-        return `This segment is invisible.`;
+        return `This segment can be burn.`;
       }
     },
     isFullyVisible: function() {
@@ -116,9 +144,14 @@ export default {
     }
   },
   mounted() {
-    this.redraw();
+    if (this.isFromShowedCollection) {
+      this.redraw();
+    }
   },
   methods: {
+    goToNftPage() {
+      this.$store.dispatch('Provider/changePage', {newPage: this.$props.collectionName});
+    },
     edit() {
       if (this.isPartialVisible) {
         this.$props.onedit(this.$props.id, this.x, this.y, this.width, this.height);
@@ -172,6 +205,11 @@ export default {
   border-bottom: solid 2px var(--sunrise);
   margin-bottom: 3px;
 }
+
+.canvas-container img {
+  margin-bottom: -5px;
+}
+
 canvas {
   image-rendering: pixelated;
 }
@@ -216,7 +254,7 @@ canvas {
 .nft-info-button {
   border: solid 2px var(--yellow);
   cursor: pointer;
-  height: 22px;
+  height: 28px;
   padding: 0px 5px;
   margin-right: 5px;
 }
@@ -234,6 +272,9 @@ canvas {
 .nft-info-button .burn-icon {
   width: 15px;
   height: 15px;
+  margin-left: 5px;
+}
+.nft-info-button .open-icon {
   margin-left: 5px;
 }
 .nft-subinfo-container {

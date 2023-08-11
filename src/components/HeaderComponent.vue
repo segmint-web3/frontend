@@ -3,7 +3,7 @@
     <div class="header-wide">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
       <div :class='`page-button-container ${pagesDropdownVisible ? "with-background" : ""}`'>
-        <a href="#" :class='`secondary-button page-button ${currentPage}`' @click='this.togglePagesDropdown'></a>
+        <a href="#" :class='`secondary-button page-button  ${pagesDropdownVisible ? `without-icon ${this.$store.state.Provider.page}` : "with-icon"}`' :style='`background-image: url("${publicPath}icons/switch_page.svg")`' @click='this.togglePagesDropdown'></a>
         <a v-if='pagesDropdownVisible' href="#" :class='`secondary-button page-button page-button-dropdown-first ${secondPage}`' @click='this.chooseSecondPage'></a>
         <a v-if='pagesDropdownVisible' href="#" :class='`secondary-button page-button page-button-dropdown-second ${thirdPage}`' @click='this.chooseThirdPage'></a>
       </div>
@@ -161,6 +161,14 @@ export default {
 .page-button.page-button-dropdown-second {
   position: absolute;
   top: 112.5px;
+}
+.page-button.with-icon {
+  background-position: 50%;
+  background-size: contain;
+  border: 0;
+}
+.page-button.without-icon {
+  background-image: none !important;
 }
 
 .mobile-open-page-button {
