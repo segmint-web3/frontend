@@ -12,7 +12,7 @@ import {
 } from '@/utils/pixels'
 import {BN} from "bn.js";
 
-const Pages ={
+const Pages = {
   ocean: {
     collection: new Address("0:1a98a60471cb91af9f7c47063c2d2a5c4df325b28d53f3b3b2d05bcc5e6b81b8"),
     blocklist: new Address("0:84ce0db6019a06bf3cc8b1ac7a626993981bca23d7c6e97843735dd383093a28"),
@@ -67,11 +67,17 @@ async function loadCollection(provider, page, commit) {
 
     let {fields: blockedListParsedState} = await blockListContract.getFields({});
     let blockedNftById = {};
+    let blockListManagers = {};
 
     for (let item of blockedListParsedState.blocked_) {
       blockedNftById[item[0]] = true;
       commit('Provider/addBlockedNft', { id: item[0] });
     }
+    for (let item of blockedListParsedState.managers_) {
+      blockListManagers[item[0]] = true;
+    }
+    commit('Provider/setBlockListManagers', blockListManagers);
+
 
     // We collect every new taken pixels & colorify nfts
     // To be added after cached state is loaded.
@@ -396,7 +402,8 @@ export const Provider = {
     mintDisabled: false,
     tilesByIndex: {},
     nftDataById: {},
-    blockedNftById: {}
+    blockedNftById: {},
+    blockListManagers: {}
   },
   mutations: {
     setPage(state, page) {
@@ -540,6 +547,9 @@ export const Provider = {
           }
         }
       }
+    },
+    setBlockListManagers(state, managers) {
+      state.blockListManagers = managers;
     }
   },
   getters: {
@@ -771,6 +781,16 @@ export const Provider = {
         }).then(function(firstTx) {
           commit('removeUserNft', id);
         })
+      })
+    },
+    addToBanList({state, commit}, {id}) {
+      const blockListContract = new provider.Contract(BlockListAbi, Pages[state.page].blocklist);
+      return blockListContract.methods.addToBanList({
+        "collection": Pages[state.page].collection,
+        "nftId": id
+      }).send({
+        from: state.account,
+        amount: '1000000000'
       })
     },
     fetchNftData({state, commit}, {id}) {

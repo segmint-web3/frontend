@@ -2,6 +2,7 @@
   <div class="wrapper">
     <message-modal name='canvas-message-modal' :message='errorMessage'/>
     <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
+    <moderation-modal name='moderation-modal' :id='moderationId' @close="closeModerationModal"/>
     <div class="canvas-container" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div class='canvas-stack'>
         <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
@@ -9,6 +10,9 @@
       </div>
       <div class="hover-popup" :style="highLightPopupStyles">
         {{highlightNftDescription}}
+        <a v-if='isManager' :href='highlightNftLink' style='color: #FFED6CFF; display: block' target='_blank'>
+          {{highlightNftLink}}
+        </a>
       </div>
       <div class="selection-header" :style="selectionHeaderStyle">
         {{ selectedWidth }}x{{selectedHeight}}
@@ -28,6 +32,7 @@
 <script>
 import ClaimModal from "@/components/ClaimModal.vue";
 import MessageModal from '@/components/MessageModal.vue'
+import ModerationModal from '@/components/ModerationModal.vue'
 import { getMainBackgroundTileColor, getMainForegroundTileColor } from '@/utils/pixels'
 import isMobile from 'ismobilejs';
 
@@ -35,7 +40,7 @@ import isMobile from 'ismobilejs';
 
 export default {
   name: 'CanvasComponent',
-  components: {ClaimModal, MessageModal},
+  components: {ClaimModal, MessageModal, ModerationModal},
   // mixins: [zoomMixin],
   props: ['isEditingMode'],
   data() {
@@ -51,6 +56,7 @@ export default {
       selectionEndY: null,
       // to show nftDescription
       highLightNftId: null,
+      moderationId: null,
       lastMousePosX: 0,
       lastMousePosY: 0,
       selectionTriedCounter: 0,
@@ -61,6 +67,9 @@ export default {
   computed: {
     collectionLoaded: function() {
       return this.$store.state.Provider.collectionLoaded;
+    },
+    isManager: function() {
+      return this.$store.state.Provider.account && this.$store.state.Provider.blockListManagers[this.$store.state.Provider.account];
     },
     hideOldCanvas: function() {
       return this.isEditingMode || this.selectionTriedCounter > 0 || this.selectionInProcess;
@@ -121,7 +130,8 @@ export default {
           top: `${this.lastMousePosY}px`,
           left: `${left ? this.lastMousePosX - 235 : this.lastMousePosX + 15}px`,
           width: '200px',
-          minHeight: '20px'
+          minHeight: '20px',
+          wordBreak: 'break-all'
         }
       } else {
         return {
@@ -136,6 +146,15 @@ export default {
         return nft.description || 'No description :-(';
       } else {
         return `Loading description for nft with id ${this.highLightNftId}...`;
+      }
+    },
+    highlightNftLink() {
+      let mapping = this.$store.state.Provider.nftDataById;
+      let nft = mapping[this.highLightNftId];
+      if (nft) {
+        return nft.url;
+      } else {
+        return ''
       }
     },
     selectionStyles: function () {
@@ -275,11 +294,15 @@ export default {
       if (this.isMobile && !this.isEditingMode) {
         // On mobile selection available only in editing mode;
         if (this.highLightNftId) {
-          let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
-          if (nft && nft.url) {
-            const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
-            if (urlPattern.test(nft.url)) {
-              window.open(nft.url, '_blank');
+          if (this.isManager) {
+            this.showModerationPopup(this.highLightNftId);
+          } else {
+            let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
+            if (nft && nft.url) {
+              const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+              if (urlPattern.test(nft.url)) {
+                window.open(nft.url, '_blank');
+              }
             }
           }
           return;
@@ -407,10 +430,14 @@ export default {
       this.selectionInProcess = false;
       if (this.selectionStartX !== null && this.selectionStartX === this.selectionEndX && this.selectionStartY === this.selectionEndY && this.highLightNftId) {
         let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
-        if (nft && nft.url) {
-          const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
-          if (urlPattern.test(nft.url)) {
-            window.open(nft.url, '_blank');
+        if (this.isManager) {
+          this.showModerationPopup(this.highLightNftId);
+        } else {
+          if (nft && nft.url) {
+            const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+            if (urlPattern.test(nft.url)) {
+              window.open(nft.url, '_blank');
+            }
           }
         }
       }
@@ -436,6 +463,11 @@ export default {
         this.$store.dispatch('Provider/connect');
       }
     },
+    showModerationPopup(id) {
+      this.moderationId = id;
+      this.$store.dispatch('Provider/fetchNftData', {id: this.moderationId});
+      this.$modal.show('moderation-modal');
+    },
     onClaimModalSuccess() {
       this.clearSelection();
       this.$modal.hide('claim-modal');
@@ -448,8 +480,11 @@ export default {
         this.clearSelection();
       }, 5000)
     },
-    closeClaimModal(){
+    closeClaimModal() {
       this.$modal.hide('claim-modal');
+    },
+    closeModerationModal() {
+      this.$modal.hide('moderation-modal');
     },
   }
 }
