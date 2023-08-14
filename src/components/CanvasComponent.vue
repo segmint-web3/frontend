@@ -10,7 +10,7 @@
       </div>
       <div class="hover-popup" :style="highLightPopupStyles">
         {{highlightNftDescription}}
-        <a v-if='isManager' :href='highlightNftLink' style='color: #FFED6CFF; display: block' target='_blank'>
+        <a v-if='isManager' :href='highlightNftLink' style='color: #FFED6CFF; display: block; word-break: break-all;' target='_blank'>
           {{highlightNftLink}}
         </a>
       </div>
@@ -130,8 +130,7 @@ export default {
           top: `${this.lastMousePosY}px`,
           left: `${left ? this.lastMousePosX - 235 : this.lastMousePosX + 15}px`,
           width: '200px',
-          minHeight: '20px',
-          wordBreak: 'break-all'
+          minHeight: '20px'
         }
       } else {
         return {
@@ -560,6 +559,7 @@ export default {
   font-weight: bold;
   padding: 10px;
   background-color: var(--midnight);
+  overflow-x: hidden;
 }
 
 .selection-header {

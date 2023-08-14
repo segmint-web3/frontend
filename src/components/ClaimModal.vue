@@ -90,7 +90,13 @@ export default {
       return this.image !== null;
     },
     canvasContainerStyles: function () {
-      if (this.$props.width > 200 || this.$props.height > 200) {
+      if ((window.innerHeight < 610 && this.$props.height > 100) || (window.innerHeight < 520 && this.$props.height > 50)) {
+        return {
+          margin: 'auto',
+          width: `${Math.floor(this.$props.width/2)}px`,
+          height: `${Math.floor(this.$props.height/2)}px`
+        }
+      } else if (this.$props.width > 200 || this.$props.height > 200 || window.innerHeight < 690) {
         return {
           margin: 'auto',
           width: `${this.$props.width}px`,
