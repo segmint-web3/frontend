@@ -56,8 +56,12 @@ export default {
   },
   mounted() {
     const validPages = AvailablePages;
-    let pageInUrl = window.location.hash.slice(1);
-    console.log('pageInUrl');
+    let pageInUrl;
+    for (let page of validPages) {
+      if (window.location.href.indexOf(page) === 8) {
+        pageInUrl = page;
+      }
+    }
     if (validPages.indexOf(pageInUrl) === -1) {
       pageInUrl = localStorage.getItem('page');
     }
@@ -66,7 +70,6 @@ export default {
     }
     localStorage.setItem('page', pageInUrl);
     this.collectionName = pageInUrl;
-    window.location.hash = pageInUrl;
     this.pageClass = 'global-page-style ' + pageInUrl;
     this.$store.dispatch('Provider/init', {page: pageInUrl});
     this.$modal.show('rules-modal');

@@ -499,7 +499,7 @@ export default {
   background-color: var(--midnight);
 }
 .canvas-container {
-  margin: 100px auto 50px;
+  margin: 100px auto 120px;
   position: relative;
   width: 1000px;
   height: 1000px;
@@ -546,7 +546,7 @@ export default {
 
 .mint-button {
   position: fixed;
-  bottom: 20px;
+  bottom: 60px;
   left: calc(50% - 80px);
   font-family: inherit;
   cursor: pointer;

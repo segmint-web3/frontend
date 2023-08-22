@@ -75,13 +75,11 @@ export default {
   methods: {
     chooseSecondPage(e) {
       e.preventDefault();
-      window.location.hash = this.secondPage;
-      window.location.reload();
+      this.$store.dispatch('Provider/changePage', {newPage: this.secondPage});
     },
     chooseThirdPage(e) {
       e.preventDefault();
-      window.location.hash = this.thirdPage;
-      window.location.reload();
+      this.$store.dispatch('Provider/changePage', {newPage: this.thirdPage});
     },
     togglePagesDropdown(e) {
       e.preventDefault();

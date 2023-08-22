@@ -563,9 +563,8 @@ export const Provider = {
   },
   actions:  {
     changePage({state}, {newPage}) {
-      window.location.hash = newPage;
       localStorage.setItem('page', newPage);
-      window.location.reload();
+      window.location.href = `https://${newPage}.segmint.app/`;
     },
     init({ state, commit }, {page}) {
       if (state.venomConnect)
@@ -602,33 +601,88 @@ export const Provider = {
               "android",
             ],
           },
-          // everwallet: {
-          //   links: {},
-          //   walletWaysToConnect: [
-          //     {
-          //       // NPM package
-          //       package: ProviderRpcClient,
-          //       packageOptions: {
-          //         fallback:
-          //           VenomConnect.getPromise("everwallet", "extension") ||
-          //           (() => Promise.reject()),
-          //         forceUseFallback: true,
-          //       },
-          //       packageOptionsStandalone: {
-          //         fallback: standaloneFallback,
-          //         forceUseFallback: true,
-          //       },
-          //       id: "extension",
-          //       type: "extension",
-          //     },
-          //   ],
-          //   defaultWalletWaysToConnect: [
-          //     // List of enabled options
-          //     "mobile",
-          //     "ios",
-          //     "android",
-          //   ],
-          // },
+          oneartwallet: {
+            walletWaysToConnect: [
+              {
+                // NPM package
+                package: ProviderRpcClient,
+                packageOptions: {
+                  fallback:
+                    VenomConnect.getPromise("oneartwallet", "extension") ||
+                    (() => Promise.reject()),
+                  forceUseFallback: true,
+                },
+                packageOptionsStandalone: {
+                  fallback: standaloneFallback,
+                  forceUseFallback: true,
+                },
+                // Setup
+                id: "extension",
+                type: "extension",
+              },
+            ],
+            defaultWalletWaysToConnect: [
+              // List of enabled options
+              "mobile",
+              "ios",
+              "android",
+            ],
+          },
+          oxychatwallet: {
+            walletWaysToConnect: [
+              {
+                // NPM package
+                package: ProviderRpcClient,
+                packageOptions: {
+                  fallback:
+                    VenomConnect.getPromise("oxychatwallet", "extension") ||
+                    (() => Promise.reject()),
+                  forceUseFallback: true,
+                },
+                packageOptionsStandalone: {
+                  fallback: standaloneFallback,
+                  forceUseFallback: true,
+                },
+
+                // Setup
+                id: "extension",
+                type: "extension",
+              },
+            ],
+            defaultWalletWaysToConnect: [
+              // List of enabled options
+              "mobile",
+              "ios",
+              "android",
+            ],
+          },
+          everwallet: {
+            links: {},
+            walletWaysToConnect: [
+              {
+                // NPM package
+                package: ProviderRpcClient,
+                packageOptions: {
+                  fallback:
+                    VenomConnect.getPromise("everwallet", "extension") ||
+                    (() => Promise.reject()),
+                  forceUseFallback: true,
+                },
+                packageOptionsStandalone: {
+                  fallback: standaloneFallback,
+                  forceUseFallback: true,
+                },
+                id: "extension",
+                type: "extension",
+              },
+            ],
+            defaultWalletWaysToConnect: [
+              // List of enabled options
+              "mobile",
+              "ios",
+              "android",
+            ],
+          },
         },
       });
       commit('setVenomConnect', venomConnect);

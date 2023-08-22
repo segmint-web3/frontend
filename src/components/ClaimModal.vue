@@ -18,7 +18,7 @@
         </div>
         <label v-show='!hideOnInputMobile' for="assetsFieldHandle" class="file-upload">
           <input type="file" multiple name="fields[assetsFieldHandle][]" class="file-input" id="assetsFieldHandle"
-                 @change="onChange" ref="file" accept=".pdf,.jpg,.jpeg,.png" />
+                 @change="onChange" ref="file" accept=".jpg,.jpeg,.png" />
           <button class="transparent-button">Select Image</button>
         </label>
         <div v-show="showCanvas && !hideOnInputMobile" :style="canvasContainerStyles" class="canvasContainer">
