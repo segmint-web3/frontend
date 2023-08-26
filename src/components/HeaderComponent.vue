@@ -7,7 +7,6 @@
         <a v-if='pagesDropdownVisible' href="#" :class='`secondary-button page-button page-button-dropdown-first ${secondPage}`' @click='this.chooseSecondPage'></a>
         <a v-if='pagesDropdownVisible' href="#" :class='`secondary-button page-button page-button-dropdown-second ${thirdPage}`' @click='this.chooseThirdPage'></a>
       </div>
-      <a href="#" class="secondary-button mode-button" @click='$props.toggleEditingMode'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
       <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
       <a href="#" class="secondary-button faq-button" @click='$props.openFaq'>Rules</a>
     </div>
@@ -15,22 +14,37 @@
       <img :src="`${publicPath}icons/menu.svg`" alt="menu" class="menu" @click="toggleMobileMenu">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
       <div v-if="menuOpened" class="mobile-buttons">
-        <a href="#" class="secondary-button" @click='this.toggleEditingModeMobile'>{{ isEditingMode ? 'View mode' : 'Mint mode' }}</a>
+        <div class="flex mobile-switch-wrapper">
+          <label for="switch" class="label">{{ isEditingMode ? 'View mode' : 'Mint mode' }}</label>
+          <label class="mode-switch">
+            <input type="checkbox" id="switch" :checked="mintMode" @change="toggleMode($event)">
+            <span class="slider"></span>
+          </label>
+        </div>
         <a href="#" class="secondary-button mobile-open-page-button" @click='this.chooseSecondPage'>{{ `${secondPage} page` }}</a>
         <a href="#" class="secondary-button mobile-open-page-button" @click='this.chooseThirdPage'>{{ `${thirdPage} page` }}</a>
         <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='this.openMyNftsMobile'>My NFT</a>
         <a href="#" class="secondary-button faq-button" @click='this.openFaqMobile'>Rules</a>
       </div>
     </div>
-    <div v-if="!$store.state.Provider.account" class="wallet-connect">
-      <button class="primary-button connect" @click="connect">Connect wallet</button>
-    </div>
-    <div v-else class="flex wallet-info">
-      <div class="info">
-        <div class="address">{{ address }}</div>
-        <div class="coins">{{ balance }} VENOM</div>
+    <div class="flex">
+      <div class="mode-switch-wrapper">
+        <label for="switch" class="label">{{ isEditingMode ? 'View mode' : 'Mint mode' }}</label>
+        <label class="mode-switch">
+          <input type="checkbox" id="switch" :checked="mintMode" @change="toggleMode($event)">
+          <span class="slider"></span>
+        </label>
       </div>
-      <img :src="`${publicPath}icons/exit.svg`" alt="exit" class="exit" @click="disconnect">
+      <div v-if="!$store.state.Provider.account" class="wallet-connect">
+        <button class="primary-button connect" @click="connect">Connect wallet</button>
+      </div>
+      <div v-else class="flex wallet-info">
+        <div class="info">
+          <div class="address">{{ address }}</div>
+          <div class="coins">{{ balance }} VENOM</div>
+        </div>
+        <img :src="`${publicPath}icons/exit.svg`" alt="exit" class="exit" @click="disconnect">
+      </div>
     </div>
   </div>
 </template>
@@ -44,6 +58,7 @@ export default {
       publicPath: process.env.BASE_URL,
       pagesDropdownVisible: false,
       menuOpened: false,
+      mintMode: false
     }
   },
   props: ['openMyNfts', 'openFaq', 'isEditingMode', 'toggleEditingMode'],
@@ -104,9 +119,9 @@ export default {
       this.menuOpened = false;
       this.openFaq();
     },
-    toggleEditingModeMobile(e) {
-      e.preventDefault();
-      this.menuOpened = false;
+    toggleMode(e){
+      this.mintMode = e.target.checked;
+      console.log(this.mintMode);
       this.toggleEditingMode();
     }
   }
@@ -175,12 +190,6 @@ export default {
   margin-right: 10px;
 }
 
-.mode-button {
-  width: 150px;
-  padding: 5px 10px;
-  margin-right: 10px;
-}
-
 .nft-button {
   width: 120px;
   padding: 5px 10px;
@@ -228,7 +237,7 @@ export default {
   position: relative;
 }
 @media only screen and (max-width: 900px) {
-  .header-wide {
+  .header-wide, .mode-switch-wrapper {
     display: none;
   }
   .header-mobile {
@@ -241,6 +250,10 @@ export default {
 }
 @media only screen and (min-width: 900px) {
   .header-wide {
+    display: flex;
+    align-items: center;
+  }
+  .mode-switch-wrapper {
     display: flex;
     align-items: center;
   }
@@ -265,5 +278,72 @@ export default {
 }
 .header-mobile .secondary-button {
   margin: 5px 0;
+}
+.mode-switch-wrapper {
+  margin: 0 30px;
+}
+.mobile-buttons .mobile-switch-wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 0 10px 0;
+}
+.mode-switch-wrapper .label, .mobile-switch-wrapper .label {
+  margin-right: 10px;
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 30px; 
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.mode-switch {
+  position: relative;
+  display: inline-block;
+  width: 63px;
+  height: 33px;
+}
+.mode-switch input {
+  display:none;
+}
+.mode-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  width: 63px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--dark-night);
+  border: 2px solid var(--yellow);
+  -webkit-transition: .4s;
+  transition: .4s;
+  box-sizing: border-box;
+}
+
+.mode-switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 30px;
+  width: 30px;
+  top: 0;
+  left: 0;
+  background-color: var(--yellow);
+  border: 2px solid var(--dark-night);
+  -webkit-transition: .4s;
+  transition: .4s;
+  box-sizing: border-box;
+}
+
+.mode-switch input:checked + .slider {
+  background-color: var(--yellow);
+}
+
+.mode-switch input:focus + .slider {
+  box-shadow: 0 0 1px var(--yellow);
+}
+
+.mode-switch input:checked + .slider:before {
+  -webkit-transform: translateX(30px);
+  -ms-transform: translateX(30px);
+  transform: translateX(30px);
 }
 </style>

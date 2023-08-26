@@ -86,9 +86,8 @@ export default {
       this.$modal.show('rules-modal');
       e.preventDefault();
     },
-    toggleEditingMode(e) {
+    toggleEditingMode() {
       this.isEditingMode = !this.isEditingMode;
-      e.preventDefault();
     }
   }
 }
