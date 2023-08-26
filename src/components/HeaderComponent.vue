@@ -121,7 +121,7 @@ export default {
     },
     toggleMode(e){
       this.mintMode = e.target.checked;
-      console.log(this.mintMode);
+      this.menuOpened = false;
       this.toggleEditingMode();
     }
   }
@@ -291,7 +291,7 @@ export default {
   margin-right: 10px;
   font-size: 24px;
   font-weight: 500;
-  line-height: 30px; 
+  line-height: 30px;
   cursor: pointer;
   text-transform: uppercase;
 }
