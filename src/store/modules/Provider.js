@@ -656,33 +656,33 @@ export const Provider = {
               "android",
             ],
           },
-          everwallet: {
-            links: {},
-            walletWaysToConnect: [
-              {
-                // NPM package
-                package: ProviderRpcClient,
-                packageOptions: {
-                  fallback:
-                    VenomConnect.getPromise("everwallet", "extension") ||
-                    (() => Promise.reject()),
-                  forceUseFallback: true,
-                },
-                packageOptionsStandalone: {
-                  fallback: standaloneFallback,
-                  forceUseFallback: true,
-                },
-                id: "extension",
-                type: "extension",
-              },
-            ],
-            defaultWalletWaysToConnect: [
-              // List of enabled options
-              "mobile",
-              "ios",
-              "android",
-            ],
-          },
+          // everwallet: {
+          //   links: {},
+          //   walletWaysToConnect: [
+          //     {
+          //       // NPM package
+          //       package: ProviderRpcClient,
+          //       packageOptions: {
+          //         fallback:
+          //           VenomConnect.getPromise("everwallet", "extension") ||
+          //           (() => Promise.reject()),
+          //         forceUseFallback: true,
+          //       },
+          //       packageOptionsStandalone: {
+          //         fallback: standaloneFallback,
+          //         forceUseFallback: true,
+          //       },
+          //       id: "extension",
+          //       type: "extension",
+          //     },
+          //   ],
+          //   defaultWalletWaysToConnect: [
+          //     // List of enabled options
+          //     "mobile",
+          //     "ios",
+          //     "android",
+          //   ],
+          // },
         },
       });
       commit('setVenomConnect', venomConnect);
