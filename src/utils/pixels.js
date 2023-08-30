@@ -13,12 +13,27 @@ export function getBlackPixels() {
 }
 
 const MainBackgroundTileColor = Array(20 * 20 * 4).fill(255);
-for (let i = 0; i < MainBackgroundTileColor.length; i++) {
-  (i % 4 === 0) && (MainBackgroundTileColor[i] = 33);
-  (i % 4 === 1) && (MainBackgroundTileColor[i] = 0);
-  (i % 4 === 2) && (MainBackgroundTileColor[i] = 75);
-}
+
 export function getMainBackgroundTileColor() {
+  if(localStorage.getItem('page') === 'desert') {
+    for (let i = 0; i < MainBackgroundTileColor.length; i++) {
+      (i % 4 === 0) && (MainBackgroundTileColor[i] = 77);
+      (i % 4 === 1) && (MainBackgroundTileColor[i] = 14);
+      (i % 4 === 2) && (MainBackgroundTileColor[i] = 14);
+    }
+  } else if(localStorage.getItem('page') === 'forest') {
+    for (let i = 0; i < MainBackgroundTileColor.length; i++) {
+      (i % 4 === 0) && (MainBackgroundTileColor[i] = 0);
+      (i % 4 === 1) && (MainBackgroundTileColor[i] = 45);
+      (i % 4 === 2) && (MainBackgroundTileColor[i] = 30);
+    }
+  } else {
+    for (let i = 0; i < MainBackgroundTileColor.length; i++) {
+      (i % 4 === 0) && (MainBackgroundTileColor[i] = 33);
+      (i % 4 === 1) && (MainBackgroundTileColor[i] = 0);
+      (i % 4 === 2) && (MainBackgroundTileColor[i] = 75);
+    }
+  }
   return MainBackgroundTileColor;
 }
 

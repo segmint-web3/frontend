@@ -4,7 +4,7 @@
       <div class=" flex message-modal-content">
         <div class="instructions">
           <h2 class="primary-text">How it works</h2>
-          <ul>
+          <ul class="list">
             <li>
               <p class='secondary-text'>Pick an area to take a seat on the board</p>
             </li>
@@ -101,7 +101,9 @@ export default {
   margin: 0 0 24px 0;
   font-weight: 600;
 }
-
+.list {
+  list-style-type:square;
+}
 .modal-content ul {
   padding-inline-start: 16px;
 }

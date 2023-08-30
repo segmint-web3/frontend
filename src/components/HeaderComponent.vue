@@ -156,13 +156,13 @@ export default {
   box-sizing: border-box;
 }
 .page-button.desert {
-  background-color: #4D0E0E;
+  background-color: #703131;
 }
 .page-button.forest {
-  background-color: #002D1E;
+  background-color: #135243;
 }
 .page-button.ocean {
-  background-color: #0E015C;
+  background-color: #34287E;
 }
 .page-button-container {
   position: relative;
@@ -193,12 +193,14 @@ export default {
 .nft-button {
   width: 120px;
   padding: 5px 10px;
+  text-transform: uppercase;
 }
 
 .faq-button {
   margin-left: 10px;
   width: 100px;
   padding: 5px 10px;
+  text-transform: uppercase;
 }
 
 .header-wrapper .description {
@@ -312,7 +314,7 @@ export default {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: var(--dark-night);
+  background-color: var(--midnight);
   border: 2px solid var(--yellow);
   -webkit-transition: .4s;
   transition: .4s;
@@ -327,7 +329,7 @@ export default {
   top: 0;
   left: 0;
   background-color: var(--yellow);
-  border: 2px solid var(--dark-night);
+  border: 2px solid var(--midnight);
   -webkit-transition: .4s;
   transition: .4s;
   box-sizing: border-box;
