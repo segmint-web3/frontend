@@ -17,21 +17,21 @@ const MainBackgroundTileColor = Array(20 * 20 * 4).fill(255);
 export function getMainBackgroundTileColor() {
   if(localStorage.getItem('page') === 'desert') {
     for (let i = 0; i < MainBackgroundTileColor.length; i++) {
-      (i % 4 === 0) && (MainBackgroundTileColor[i] = 77);
-      (i % 4 === 1) && (MainBackgroundTileColor[i] = 14);
-      (i % 4 === 2) && (MainBackgroundTileColor[i] = 14);
+      (i % 4 === 0) && (MainBackgroundTileColor[i] = 95);
+      (i % 4 === 1) && (MainBackgroundTileColor[i] = 32);
+      (i % 4 === 2) && (MainBackgroundTileColor[i] = 32);
     }
   } else if(localStorage.getItem('page') === 'forest') {
     for (let i = 0; i < MainBackgroundTileColor.length; i++) {
-      (i % 4 === 0) && (MainBackgroundTileColor[i] = 0);
-      (i % 4 === 1) && (MainBackgroundTileColor[i] = 45);
-      (i % 4 === 2) && (MainBackgroundTileColor[i] = 30);
+      (i % 4 === 0) && (MainBackgroundTileColor[i] = 5);
+      (i % 4 === 1) && (MainBackgroundTileColor[i] = 54);
+      (i % 4 === 2) && (MainBackgroundTileColor[i] = 39);
     }
   } else {
     for (let i = 0; i < MainBackgroundTileColor.length; i++) {
       (i % 4 === 0) && (MainBackgroundTileColor[i] = 33);
-      (i % 4 === 1) && (MainBackgroundTileColor[i] = 0);
-      (i % 4 === 2) && (MainBackgroundTileColor[i] = 75);
+      (i % 4 === 1) && (MainBackgroundTileColor[i] = 20);
+      (i % 4 === 2) && (MainBackgroundTileColor[i] = 109);
     }
   }
   return MainBackgroundTileColor;
