@@ -167,7 +167,12 @@ export default {
         this.$store.commit('Provider/makeFireShow', {id: this.$props.id})
         this.onError(`Your NFT can only be burned if it is completely covered by new NFTs. Now it is partially visible.`);
       } else {
-        this.$store.dispatch('Provider/burnNft', this.$props.id);
+        this.$store.dispatch('Provider/burnNft', this.$props.id).catch((err) => {
+          console.log(err);
+          if (err.code !== 3) {
+            this.onError(err.message);
+          }
+        });
       }
     },
     floorPrice() {

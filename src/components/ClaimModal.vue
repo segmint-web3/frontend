@@ -1,11 +1,11 @@
 <template>
-  <modal class="claim-modal" :name="$props.name" height="auto" @before-close="beforeClose" @before-open='beforeOpen'>
+  <modal class="mint-modal" :name="$props.name" height="auto" @before-close="beforeClose" @before-open='beforeOpen'>
     <div class="flex modal-content">
-      <div class="claim-modal-header">
+      <div class="mint-modal-header">
         {{ headerText }}
         <img :src="`${publicPath}icons/close.svg`" alt="close" class="close" @click="$emit('close')">
       </div>
-      <div class="flex claim-modal-content">
+      <div class="flex mint-modal-content">
         <div v-if="claimInProgress" style="background-color: rgba(0, 0, 0, 0.3); position: absolute; left: 0; right: 0; top:0; bottom: 0;"></div>
         <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
           You have selected a {{this.width}}x{{this.height}} segment
@@ -125,6 +125,9 @@ export default {
     mintingPrice() {
       return (parseInt(this.$store.state.Provider.currentTilePrice) * (this.$props.width * this.$props.height / 400) / 1_000_000_000).toFixed(1);
     }
+  },
+  mounted() {
+    console.log('CLAIM MODAL MOUNTED');
   },
   methods: {
     onFocus() {
@@ -255,9 +258,12 @@ export default {
         return
 
       const description = this.description;
-      const url = this.link;
+      let url = this.link;
+      if (!url) {
+        url = 'https://google.com/'
+      }
       const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
-      if(urlPattern.test(url.trim().toLowerCase()) || (url.length > 0 && url.trim().split(' ').length === 1 && url.indexOf('.') !== -1)) {
+      if(!urlPattern.test(url.trim().toLowerCase()) || (url.length > 0 && url.trim().split(' ').length === 1 && url.indexOf('.') !== -1)) {
         this.linkValid = true;
         let promise;
         if (this.$props.id) {
@@ -290,6 +296,7 @@ export default {
         event.cancel();
     },
     beforeOpen() {
+      console.log('beforeOpen');
       this.description = '';
       this.link = '';
       this.coloredTiles = [];
@@ -310,10 +317,10 @@ canvas {
   image-rendering: pixelated;
 }
 
-.claim-modal {
+.mint-modal {
   background-color: rgb(255 237 108 / 50%);
 }
-.claim-modal-header {
+.mint-modal-header {
   width: 100%;
   padding: 0 10px 10px 10px;
   text-align: center;
@@ -324,7 +331,7 @@ canvas {
   line-height: 30px;
   font-weight: 700;
 }
-.claim-modal-header img.close {
+.mint-modal-header img.close {
   position: absolute;
   top: 8px;
   right: 10px;
@@ -355,7 +362,7 @@ canvas {
   }
 }
 
-.claim-modal-content {
+.mint-modal-content {
   flex-direction: column;
   flex: 1;
   justify-content: center;

@@ -1,8 +1,6 @@
 <template>
   <div class="wrapper">
-    <message-modal name='canvas-message-modal' :message='errorMessage'/>
-    <claim-modal name='claim-modal' :width="selectedWidth" :height="selectedHeight" :x="selectionStartX" :y="selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
-    <moderation-modal name='moderation-modal' :id='moderationId' @close="closeModerationModal"/>
+    <ModerationModal name='moderation-modal' :id='moderationId' @close="closeModerationModal"/>
     <div class="canvas-container" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
       <div class='canvas-stack'>
         <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
@@ -30,8 +28,6 @@
 </template>
 
 <script>
-import ClaimModal from "@/components/ClaimModal.vue";
-import MessageModal from '@/components/MessageModal.vue'
 import ModerationModal from '@/components/ModerationModal.vue'
 import { getMainBackgroundTileColor, getMainForegroundTileColor } from '@/utils/pixels'
 import isMobile from 'ismobilejs';
@@ -40,9 +36,9 @@ import isMobile from 'ismobilejs';
 
 export default {
   name: 'CanvasComponent',
-  components: {ClaimModal, MessageModal, ModerationModal},
+  components: {ModerationModal},
   // mixins: [zoomMixin],
-  props: ['isEditingMode'],
+  props: ['isEditingMode', 'openMint', 'openLink'],
   data() {
     return {
       ctx: null,
@@ -60,7 +56,6 @@ export default {
       lastMousePosX: 0,
       lastMousePosY: 0,
       selectionTriedCounter: 0,
-      errorMessage: '',
       isMobile: isMobile(window.navigator).any
     }
   },
@@ -245,6 +240,9 @@ export default {
     })
   },
   methods: {
+    onLinkOpen(url) {
+      this.$props.openLink(url);
+    },
     clearSelection() {
       this.selectionInProcess = false;
       this.selectionStartX = null;
@@ -300,7 +298,7 @@ export default {
             if (nft && nft.url) {
               const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
               if (urlPattern.test(nft.url)) {
-                window.open(nft.url, '_blank');
+                this.onLinkOpen(nft.url);
               }
             }
           }
@@ -435,7 +433,7 @@ export default {
           if (nft && nft.url) {
             const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
             if (urlPattern.test(nft.url)) {
-              window.open(nft.url, '_blank');
+              this.onLinkOpen(nft.url);
             }
           }
         }
@@ -457,7 +455,7 @@ export default {
     },
     claim() {
       if (this.$store.state.Provider.account) {
-        this.$modal.show('claim-modal');
+        this.$props.openMint(this.selectedWidth, this.selectedHeight, this.selectionStartX, this.selectionStartY);
       } else {
         this.$store.dispatch('Provider/connect');
       }
@@ -466,21 +464,6 @@ export default {
       this.moderationId = id;
       this.$store.dispatch('Provider/fetchNftData', {id: this.moderationId});
       this.$modal.show('moderation-modal');
-    },
-    onClaimModalSuccess() {
-      this.clearSelection();
-      this.$modal.hide('claim-modal');
-    },
-    onClaimModalError(errorMessage) {
-      this.errorMessage = errorMessage;
-      this.$modal.hide('claim-modal');
-      this.$modal.show('canvas-message-modal');
-      setTimeout(() => {
-        this.clearSelection();
-      }, 5000)
-    },
-    closeClaimModal() {
-      this.$modal.hide('claim-modal');
     },
     closeModerationModal() {
       this.$modal.hide('moderation-modal');

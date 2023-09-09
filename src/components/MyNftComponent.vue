@@ -1,6 +1,5 @@
 <template>
   <div class='full-screen-popup'>
-    <message-modal name='nft-message-modal' :message='message'/>
     <div class='full-screen-popup-fade' @click='$props.onClose'></div>
     <div class="my-nft-wrapper">
       <div class='my-nft-header'>
@@ -9,28 +8,24 @@
       </div>
       <div class='my-nft-container'>
         <div v-for="nft in currentPageNfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :collectionName='nft.collectionName' :onError='onError' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+          <OneNftComponent :collectionName='nft.collectionName' :onError='onErrorAndClose' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
         <div v-for="nft in otherPagesNfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :collectionName='nft.collectionName' :onError='onError' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+          <OneNftComponent :collectionName='nft.collectionName' :onError='onErrorAndClose' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
       </div>
     </div>
-    <claim-modal name='edit-modal' :id='editNftId' :width="editNftWidth" :height="editNftHeight" :x="editNftX" :y="editNftY" :onsuccess="onModalSuccess" @close="closEditModal"/>
+<!--    <claim-modal name='edit-modal' :id='editNftId' :width="editNftWidth" :height="editNftHeight" :x="editNftX" :y="editNftY" :onsuccess="onModalSuccess" @close="closEditModal"/>-->
   </div>
 </template>
 <script>
 
 import OneNftComponent from '@/components/OneNftComponent.vue'
-import ClaimModal from "@/components/ClaimModal.vue";
-import MessageModal from '@/components/MessageModal.vue'
 
 export default {
   name: 'MyNftComponent',
   components: {
     OneNftComponent,
-    ClaimModal,
-    MessageModal
   },
   data () {
     return {
@@ -43,7 +38,7 @@ export default {
       message: ""
     }
   },
-  props: ['onClose'],
+  props: ['onClose', 'onError', 'openEditNft'],
   computed: {
     currentPageNfts() {
       return this.$store.state.Provider.userNfts.filter(n => n.collectionName === this.$store.state.Provider.page);
@@ -61,26 +56,13 @@ export default {
   mounted(){
   },
   methods: {
-    onError(message) {
-      this.message = message;
-      this.$modal.show('nft-message-modal');
-    },
-    onEdit(id, x, y, width, height) {
-      this.editNftId = id;
-      this.editNftX = x;
-      this.editNftY = y;
-      this.editNftWidth = width;
-      this.editNftHeight = height;
-      this.$modal.show('edit-modal');
-    },
-    onModalSuccess() {
-      this.editNftId = null;
-      this.$modal.hide('edit-modal');
+    onErrorAndClose(message) {
+      this.$props.onError(message);
       this.$props.onClose();
     },
-    closEditModal() {
-      this.editNftId = null;
-      this.$modal.hide('edit-modal');
+    onEdit(id, x, y, width, height) {
+      this.$props.openEditNft(id, width, height, x, y);
+      this.$props.onClose();
     }
   }
 }

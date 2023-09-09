@@ -17,7 +17,7 @@
     "buffer": "^6.0.3",
     "core-js": "^3.8.3",
     "everscale-inpage-provider": "^0.3.61",
-    "everscale-standalone-client": "^2.1.21",
+    "everscale-standalone-client": "^2.1.23",
     "ismobilejs": "^1.1.1",
     "venom-connect": "^1.0.24",
     "vue": "^2.6.14",
