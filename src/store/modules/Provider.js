@@ -133,6 +133,7 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
                 index: index,
                 x: x * 20,
                 y: y * 20,
+                pixels: blockedNftById[tilesByIndex[index].nftId] ? getMainBackgroundTileColor() : tilesByIndex[index].pixels,
               },
               silent: true
             });
