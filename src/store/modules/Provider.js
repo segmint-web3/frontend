@@ -15,7 +15,7 @@ import {BN} from "bn.js";
 import { getState } from '@/utils/indexer'
 
 let pause = 1;
-const fetchFromIndexer = false;
+const fetchFromIndexer = true;
 
 const Pages = {
   ocean: {
@@ -52,27 +52,11 @@ const standaloneFallback = () =>
     connection: {
       id: 1000,
       group: "main",
-      type: "jrpc",
+      type: "proto",
       data: {
         endpoint: "https://jrpc-testnet.venom.foundation/"
       },
     },
-  });
-
-const standaloneFallback2 = () =>
-  new ProviderRpcClient({
-    fallback: () =>
-      EverscaleStandaloneClient.create({
-        connection: {
-          id: 1000,
-          group: "main",
-          type: "jrpc",
-          data: {
-            endpoint: "https://jrpc-testnet.venom.foundation/"
-          },
-        },
-      }),
-    forceUseFallback: true,
   });
 
 async function loadCollection(provider, page, commit, getRefreshEnabled) {
@@ -343,7 +327,7 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
         })
         if (targetFound || !continuation) {
           return transactions;
-        } else if (anti_stuck < 19) {
+        } else if (anti_stuck < 29) {
           await new Promise(resolve => setTimeout(resolve, anti_stuck * 10));
           return transactions.concat(await getTransactionsUpToLt(lastTransactionLt, continuation, anti_stuck + 1))
         } else {
@@ -351,7 +335,7 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
           throw new Error('stuck');
         }
       } catch (e) {
-        if (anti_stuck >= 19) {
+        if (anti_stuck >= 29) {
           // Just return nothing
           console.log('We stuck!!!');
           commit('Provider/setCollectionOutOfSync', {});
@@ -494,7 +478,6 @@ export const Provider = {
     venomConnect: null,
     provider: null,
     standaloneProvider: null,
-    standaloneProviderPublic: null,
     account: null,
     accountBalanceSubscriber: null,
     venomBalance: '0',
@@ -523,9 +506,6 @@ export const Provider = {
     setStandaloneProvider(state, provider) {
       state.standaloneProvider = provider;
       loadCollection(provider, state.page, this.commit, this.getters['Provider/getRefreshEnabled']);
-    },
-    setStandaloneProviderPublic(state, provider) {
-      state.standaloneProviderPublic = provider;
     },
     setProvider(state, provider) {
       console.log('setProvider', provider);
@@ -812,10 +792,8 @@ export const Provider = {
         const currentProviderState = await provider?.getProviderState();
         window.provider = provider;
         let standAloneProvider = await venomConnect.getStandalone();
-        let standAloneProviderPublic = await standaloneFallback2();
-        console.log('standAloneProviderPublic', standAloneProviderPublic);
+        console.log('standAloneProvider', standAloneProvider)
         commit('setStandaloneProvider', standAloneProvider);
-        commit('setStandaloneProviderPublic', standAloneProviderPublic);
         if (currentProviderState?.permissions?.basic && currentProviderState?.permissions?.accountInteraction) {
           console.log('We connected');
           commit('setProvider', provider);
@@ -874,7 +852,7 @@ export const Provider = {
           try {
             let nftMinted = false;
             let txs = [];
-            const subscriber = new state.standaloneProviderPublic.Subscriber();
+            const subscriber = new state.standaloneProvider.Subscriber();
             console.log('Look for the first TX');
             await subscriber.trace(firstTx).filter(tx_in_tree => {
               try {
@@ -939,7 +917,7 @@ export const Provider = {
       if (url.toLowerCase().indexOf('http') !== 0) {
         url = 'http://' + url;
       }
-      return state.standaloneProviderPublic.getStateInit(NftAbi, {
+      return state.standaloneProvider.getStateInit(NftAbi, {
         workchain: 0,
         tvc: state.nftTvc,
         initParams: {
@@ -957,7 +935,7 @@ export const Provider = {
           amount: '1000000000'
         }).then(function(firstTx) {
           return new Promise(async(resolve, reject) => {
-            const subscriber = new state.standaloneProviderPublic.Subscriber();
+            const subscriber = new state.standaloneProvider.Subscriber();
             await subscriber.trace(firstTx).tap(tx_in_tree => {
               // nothing
             }).finished();
@@ -1006,16 +984,16 @@ export const Provider = {
         commit('setNftData', {id, description: 'This nft is blocked on frontend side due to unappropriated content', url: 'https://segmint.app/'})
         return ;
       }
-      if (!state.nftDataById[id] && state.standaloneProviderPublic && state.collectionLoaded) {
+      if (!state.nftDataById[id] && state.standaloneProvider && state.collectionLoaded) {
         commit('setNftDataLoadingInProgress', id);
-        state.standaloneProviderPublic.getStateInit(NftAbi, {
+        state.standaloneProvider.getStateInit(NftAbi, {
           workchain: 0,
           tvc: state.nftTvc,
           initParams: {
             _id: id
           }
         }).then(function(data) {
-          let nftContract = new state.standaloneProviderPublic.Contract(NftAbi, data.address);
+          let nftContract = new state.standaloneProvider.Contract(NftAbi, data.address);
           return nftContract.methods.getNftCustomData({
             answerId: 0
           }).call({
