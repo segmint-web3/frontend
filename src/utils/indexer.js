@@ -1,20 +1,12 @@
 
 export async function getState(collectionAddress, fromLt) {
-  const controller = new AbortController();
-  const signal = controller.signal;
 
-  const promise = fetch(`/${collectionAddress}.json?cache=${fromLt}`, { signal })
+  return fetch(`https://segmint.app/${collectionAddress}.json?cache=${fromLt}`, {})
     .then(response => {
       if (!response.ok) {
-        throw new Error('Ошибка сети');
+        throw new Error('Network error');
       }
       return response.json();
     })
-
-  setTimeout(() => {
-    controller.abort();
-  }, 60000);
-
-  return promise;
 }
 

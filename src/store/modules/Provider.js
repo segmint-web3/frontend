@@ -995,6 +995,7 @@ export const Provider = {
           }
         }).then(function(data) {
           let nftContract = new state.standaloneProvider.Contract(NftAbi, data.address);
+          console.log('address', data.address);
           return nftContract.methods.getNftCustomData({
             answerId: 0
           }).call({
