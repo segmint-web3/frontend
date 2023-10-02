@@ -1,34 +1,38 @@
 <template>
-  <div class="wrapper">
-    <ModerationModal name='moderation-modal' :id='moderationId' @close="closeModerationModal"/>
-    <div class="canvas-container" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
-      <div class='canvas-stack'>
-        <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
-        <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
+  <div class="container">
+    <div class="content">
+      <ModerationModal name='moderation-modal' :id='moderationId' @close="closeModerationModal"/>
+      <div class="canvas-container" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
+        <div class='canvas-stack'>
+          <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
+          <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
+        </div>
+        <div class="hover-popup" :style="highLightPopupStyles">
+          {{highlightNftDescription}}
+          <a v-if='isManager' :href='highlightNftLink' style='color: #FFED6CFF; display: block; word-break: break-all;' target='_blank'>
+            {{highlightNftLink}}
+          </a>
+        </div>
+        <div class="selection-header" :style="selectionHeaderStyle">
+          {{ selectedWidth }}x{{selectedHeight}}
+        </div>
+        <div :style="selectionStyles"></div>
+        <div v-for="tile in badTiles" v-bind:key="tile.index">
+          <div :style="styleForBadTile(tile)" />
+        </div>
+        <br />
       </div>
-      <div class="hover-popup" :style="highLightPopupStyles">
-        {{highlightNftDescription}}
-        <a v-if='isManager' :href='highlightNftLink' style='color: #FFED6CFF; display: block; word-break: break-all;' target='_blank'>
-          {{highlightNftLink}}
-        </a>
-      </div>
-      <div class="selection-header" :style="selectionHeaderStyle">
-        {{ selectedWidth }}x{{selectedHeight}}
-      </div>
-      <div :style="selectionStyles"></div>
-      <div v-for="tile in badTiles" v-bind:key="tile.index">
-        <div :style="styleForBadTile(tile)" />
-      </div>
-      <br />
+      <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess && this.badTiles.length === 0" v-on:click="claim">
+        Mint segment
+      </button>
     </div>
-    <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess && this.badTiles.length === 0" v-on:click="claim">
-      Mint segment
-    </button>
-  </div>
+    <FooterComponent></FooterComponent>
+  </div>  
 </template>
 
 <script>
 import ModerationModal from '@/components/ModerationModal.vue'
+import FooterComponent from '@/components/FooterComponent.vue'
 import { getMainBackgroundTileColor, getMainForegroundTileColor } from '@/utils/pixels'
 import isMobile from 'ismobilejs';
 
@@ -36,7 +40,7 @@ import isMobile from 'ismobilejs';
 
 export default {
   name: 'CanvasComponent',
-  components: {ModerationModal},
+  components: {ModerationModal, FooterComponent},
   // mixins: [zoomMixin],
   props: ['isEditingMode', 'openMint', 'openLink'],
   data() {
@@ -474,12 +478,17 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.wrapper {
+.container {
+  display: flex;
+  flex-direction: column;
   font-family: "ChakraPetch", Helvetica, Arial;
   height: 100%;
   width: 100%;
-  overflow: scroll;
+  overflow: auto;
   background-color: var(--midnight);
+}
+.content {
+  flex: 1;
 }
 .canvas-container {
   margin: 100px auto 120px;
@@ -529,11 +538,16 @@ export default {
 
 .mint-button {
   position: fixed;
-  bottom: 60px;
+  bottom: 120px;
   left: calc(50% - 80px);
   font-family: inherit;
   cursor: pointer;
   z-index: 2;
+}
+@media only screen and (max-width: 600px) {
+  .mint-button {
+    bottom: 200px;
+  }
 }
 
 .hover-popup {

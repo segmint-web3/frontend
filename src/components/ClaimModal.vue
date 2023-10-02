@@ -10,8 +10,11 @@
         <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
           You have selected a {{this.width}}x{{this.height}} segment
         </div>
-        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="instructions">
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="price">
            {{`Price ${this.mintingPrice} VENOM`}}
+        </div>
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="fee">
+          + our fee ≈0.09 VENOM
         </div>
         <div v-if="!canBeClaimed && $props.id" v-show='!hideOnInputMobile' class="instructions">
           Please upload a picture {{this.width}}x{{this.height}}px.
@@ -371,6 +374,15 @@ canvas {
 .instructions {
   font-weight: 700;
   margin: 5px 0;
+}
+
+.price {
+  margin-top: 8px;
+  margin-bottom: 3px;
+}
+.fee {
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 .file-upload {
   margin: 10px;

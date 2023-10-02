@@ -15,7 +15,7 @@
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
       <div v-if="menuOpened" class="mobile-buttons">
         <div class="flex mobile-switch-wrapper">
-          <label for="switch" class="label">{{ isEditingMode ? 'View mode' : 'Mint mode' }}</label>
+          <label for="switch" class="label">Mint mode</label>
           <label class="mode-switch">
             <input type="checkbox" id="switch" :checked="mintMode" @change="toggleMode($event)">
             <span class="slider"></span>
@@ -29,7 +29,7 @@
     </div>
     <div class="flex">
       <div class="mode-switch-wrapper">
-        <label for="switch" class="label">{{ isEditingMode ? 'View mode' : 'Mint mode' }}</label>
+        <label for="switch" class="label">Mint mode</label>
         <label class="mode-switch">
           <input type="checkbox" id="switch" :checked="mintMode" @change="toggleMode($event)">
           <span class="slider"></span>
@@ -43,7 +43,7 @@
           <div class="address">{{ address }}</div>
           <div class="coins">{{ balance }} VENOM</div>
         </div>
-        <img :src="`${publicPath}icons/exit.svg`" alt="exit" class="exit" @click="disconnect">
+        <img :src="`${publicPath}icons/exit.svg`" alt="exit" class="exit secondary-button" @click="disconnect">
       </div>
     </div>
   </div>
@@ -136,7 +136,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 90px;
+  height: 80px;
   padding: 10px 150px;
   box-sizing: border-box;
   background: var(--sunrise);
@@ -178,7 +178,7 @@ export default {
 .page-button.with-icon {
   background-position: 50%;
   background-size: contain;
-  border: 0;
+  border-color: transparent;
 }
 .page-button.without-icon {
   background-image: none !important;
@@ -186,20 +186,20 @@ export default {
 
 .mobile-open-page-button {
   text-transform: capitalize;
-  padding: 5px 10px;
+  padding: 5px;
   margin-right: 10px;
 }
 
 .nft-button {
   width: 120px;
-  padding: 5px 10px;
+  padding: 5px;
   text-transform: uppercase;
 }
 
 .faq-button {
   margin-left: 10px;
   width: 100px;
-  padding: 5px 10px;
+  padding: 5px;
   text-transform: uppercase;
 }
 
@@ -218,7 +218,7 @@ export default {
 }
 
 .exit {
-  height: 30px;
+  height: 35px;
   margin-left: 10px;
   cursor: pointer;
 }
