@@ -3,7 +3,7 @@
     <div class="content">
       <div class="email-block">
         <div class="title">Email:</div>
-        <a href="mailto:segmint.app@gmail" class="email">segmint.app@gmail</a>
+        <a href="mailto:segmint.app@gmail.com" class="email">segmint.app@gmail.com</a>
       </div>
       <div class="socials-block">
         <div class="title">Social networks:</div>
@@ -33,7 +33,7 @@ export default {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;    
+  justify-content: center;
   box-sizing: border-box;
   color: var(--yellow);
   border-top: 2px solid var(--yellow);
