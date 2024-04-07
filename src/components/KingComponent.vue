@@ -2,7 +2,7 @@
   <div class="king-wrapper" >
     <div class="content" v-if='isKingLoaded' @click='this.$props.onclick'>
       <div v-if='isKingGameInProgress'>
-        <img src='/king_icon.svg' class='crown-icon'/>
+        <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>
         <div class='title'>&nbsp;&nbsp;King of Segmint</div>
       </div>
       <div v-if='isKingGameInProgress' class='two-columns'>
@@ -59,6 +59,7 @@ export default {
     return {
       timer: null,
       currentTime: 0,
+      publicPath: process.env.BASE_URL,
     }
   },
   mounted() {
