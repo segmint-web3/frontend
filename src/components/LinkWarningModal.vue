@@ -44,7 +44,7 @@ export default {
 
 <style scoped>
 .link-warning-modal {
-  background-color: rgb(255 237 108 / 50%);
+  background-color: rgba(0, 0, 0, 0.3);
   z-index: 9;
 }
 .modal-content {
@@ -55,8 +55,8 @@ export default {
   min-width: 300px;
   box-sizing: border-box;
   width: 320px;
-  background-color: var(--dark-night);
-  border: 10px solid var(--sunrise);
+  background-color: var(--window-bg);
+  border: 4px solid var(--sunrise);
   color: var(--yellow);
 }
 @media only screen and (max-width: 500px) {

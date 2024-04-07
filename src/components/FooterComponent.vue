@@ -36,6 +36,7 @@ export default {
   justify-content: center;
   box-sizing: border-box;
   color: var(--yellow);
+  background-color: var(--dark);
   border-top: 2px solid var(--yellow);
   padding: 10px 50px;
 }

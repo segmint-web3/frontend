@@ -143,10 +143,14 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: solid 1px;
+  border: 2px solid var(--dark);
   padding: 10px 50px;
   cursor: pointer;
+  border-radius: 20px;
   background: linear-gradient(262deg, #34277E 0%, #5C48D2 100%);
+}
+.content:hover {
+  border: 2px solid var(--yellow);
 }
 .title {
   font-size: 22px;

@@ -91,7 +91,7 @@ export default {
   display: flex;
   flex-direction: column;
   border: solid 8px var(--sunrise);
-  background: var(--dark-night);
+  background: var(--dark);
   box-sizing: border-box;
   overflow-y: scroll;
 }

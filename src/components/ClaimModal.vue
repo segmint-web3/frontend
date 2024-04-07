@@ -325,11 +325,11 @@ canvas {
 }
 
 .mint-modal {
-  background-color: rgb(255 237 108 / 50%);
+  background-color: rgba(0, 0, 0, 0.3);
 }
 .mint-modal-header {
   width: 100%;
-  padding: 0 10px 10px 10px;
+  padding: 0 4px 10px 4px;
   text-align: center;
   background: var(--sunrise);
   color: var(--yellow);
@@ -353,8 +353,8 @@ canvas {
   min-width: 100%;
   min-height: 100%;
   flex-direction: column;
-  background-color: var(--dark-night);
-  border: 10px solid var(--sunrise);
+  background-color: var(--window-bg);
+  border: 4px solid var(--sunrise);
   color: var(--yellow);
   box-sizing: border-box;
 }
@@ -365,7 +365,7 @@ canvas {
     left: calc(50% - 150px);
     min-width: 300px;
     min-height: 300px;
-    border: 10px solid var(--sunrise);
+    border: 4px solid var(--sunrise);
   }
 }
 

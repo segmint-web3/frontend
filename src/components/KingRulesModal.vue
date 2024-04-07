@@ -61,8 +61,8 @@ export default {
   width: 450px;
   max-height: 95%;
   overflow-y: scroll;
-  background-color: var(--dark-night);
-  border: 10px solid var(--sunrise);
+  background-color: var(--window-bg);
+  border: 4px solid var(--sunrise);
   color: var(--yellow);
   box-sizing: border-box;
   padding: 40px;

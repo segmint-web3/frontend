@@ -170,6 +170,7 @@ export default {
   width: 254px;
   border: solid 2px var(--sunrise);
   padding-bottom: 10px;
+  background-color: var(--window-bg);
 }
 .canvas-container {
   width: 100%;

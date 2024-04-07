@@ -527,7 +527,9 @@ export default {
   height: 100%;
   width: 100%;
   overflow: auto;
-  background-color: var(--midnight);
+  background-color: var(--window-bg);
+  background-image: url('../../public/pattern.svg');
+  background-repeat: repeat;
 }
 .content {
   flex: 1;
