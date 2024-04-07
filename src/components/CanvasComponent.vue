@@ -527,7 +527,7 @@ export default {
   height: 100%;
   width: 100%;
   overflow: auto;
-  background-color: var(--window-bg);
+  background-color: rgba(49, 37, 122, 1);
   background-image: url('../../public/pattern.svg');
   background-repeat: repeat;
 }
