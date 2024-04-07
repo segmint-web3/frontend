@@ -1,11 +1,8 @@
 <template>
   <div class="nft-container">
     <div :style="canvasStyles" class="canvas-container">
-      <a v-if='$props.collectionName === $store.state.Provider.page' :href="scanLink" target='_blank'>
+      <a  :href="scanLink" target='_blank'>
         <canvas :style="canvasStyles" ref="canvas" :width="this.width" :height="this.height"></canvas>
-      </a>
-      <a v-else :href="scanLink" target='_blank'>
-        <img width='100%' height='100%' :src='`${publicPath}collection_banner_${$props.collectionName}.png`' />
       </a>
     </div>
     <div class='nft-info-container'>
@@ -15,7 +12,7 @@
         </a>
       </div>
     </div>
-    <div class="nft-buttons" v-show='isFromShowedCollection'>
+    <div class="nft-buttons">
       <div class='secondary-button nft-info-button' @click='edit'>
         <span>
           Edit
@@ -29,23 +26,11 @@
         <img :src="`${publicPath}icons/burn.svg`" alt="burn" class="burn-icon">
       </div>
     </div>
-    <div class="nft-buttons" v-show='!isFromShowedCollection'>
-      <div class='secondary-button nft-info-button' @click='goToNftPage'>
-        <span>
-          Go to {{this.collectionNameBeauty}} collection
-        </span>
-        <img :src="`${publicPath}icons/open_page.svg`" alt="open" class="open-icon">
-      </div>
-    </div>
     <div class='nft-subinfo-container'>
-      <p v-show='isFromShowedCollection'>
         {{ this.visiblyText }}
-      </p>
-      <p v-show='!isFromShowedCollection'>
-        This NFT is from {{this.collectionNameBeauty}} collection
-      </p>
       <p>
         Locked value: {{this.beautyValue}} Venom
+          + up to 0.4 in gas
       </p>
     </div>
   </div>
@@ -61,7 +46,7 @@ export default {
       publicPath: process.env.BASE_URL
     }
   },
-  props: ['id', 'collectionName', 'address', 'tileStartX', 'tileStartY', 'tileEndX', 'tileEndY', 'description', 'url', 'onedit', 'lockedAmount', 'onError'],
+  props: ['id', 'address', 'tileStartX', 'tileStartY', 'tileEndX', 'tileEndY', 'description', 'url', 'onedit', 'lockedAmount', 'onError'],
   computed: {
     x: function() {
       return this.$props.tileStartX * 20;
@@ -75,30 +60,16 @@ export default {
     height: function() {
       return (this.$props.tileEndY - this.$props.tileStartY) * 20;
     },
-    isFromShowedCollection() {
-      return this.$props.collectionName === this.$store.state.Provider.page;
-    },
-    collectionNameBeauty() {
-      return this.$props.collectionName.slice(0, 1).toUpperCase() + this.$props.collectionName.slice(1);
-    },
     canvasStyles: function () {
-      if (this.isFromShowedCollection) {
-        const height = 250/this.width * this.height;
-        return {
-          margin: 'auto',
-          width: `100%`,
-          height: `${height}px`
-        }
-      } else {
-        return {
-          margin: 'auto',
-          width: `100%`,
-          height: `100%`
-        }
+      const height = 250/this.width * this.height;
+      return {
+        margin: 'auto',
+        width: `100%`,
+        height: `${height}px`
       }
     },
     scanLink: function() {
-      return `https://testnet.venomscan.com/accounts/${this.$props.address.toString()}`;
+      return `https://venomscan.com/accounts/${this.$props.address.toString()}`;
     },
     beautyValue: function() {
       return (parseInt(this.$props.lockedAmount)/1_000_000_000).toFixed(2)
@@ -144,14 +115,9 @@ export default {
     }
   },
   mounted() {
-    if (this.isFromShowedCollection) {
-      this.redraw();
-    }
+    this.redraw();
   },
   methods: {
-    goToNftPage() {
-      this.$store.dispatch('Provider/changePage', {newPage: this.$props.collectionName});
-    },
     edit() {
       if (this.isPartialVisible) {
         this.$props.onedit(this.$props.id, this.x, this.y, this.width, this.height);
@@ -289,7 +255,7 @@ canvas {
   font-weight: 400;
   line-height: 16px;
   letter-spacing: 0em;
-  margin: 0px 10px;
+  margin: 5px 10px;
 }
 .nft-subinfo-container p {
   margin: 5px 0;

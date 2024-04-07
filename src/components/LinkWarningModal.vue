@@ -36,6 +36,9 @@ export default {
       this.$modal.hide(this.name);
     },
   },
+  mounted() {
+    console.log('mounted', this.name, this.url);
+  }
 }
 </script>
 

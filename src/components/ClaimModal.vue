@@ -14,7 +14,11 @@
            {{`Price ${this.mintingPrice} VENOM`}}
         </div>
         <div v-if='!$props.id' v-show='!hideOnInputMobile' class="fee">
-          + our fee ≈0.09 VENOM
+          + 0.1 VENOM our commission
+        </div>
+        <div v-if='!$props.id' v-show='!hideOnInputMobile' class="fee">
+          + partially refundable gas fees
+          <br />
         </div>
         <div v-if="!canBeClaimed && $props.id" v-show='!hideOnInputMobile' class="instructions">
           Please upload a picture {{this.width}}x{{this.height}}px.
@@ -126,7 +130,7 @@ export default {
       } else return "Choosing a picture";
     },
     mintingPrice() {
-      return (parseInt(this.$store.state.Provider.currentTilePrice) * (this.$props.width * this.$props.height / 400) / 1_000_000_000).toFixed(1);
+      return (parseInt(this.$store.state.Provider.currentTilePrice) * (this.$props.width * this.$props.height / 400) / 1_000_000_000).toFixed(2);
     }
   },
   mounted() {
@@ -263,7 +267,7 @@ export default {
       const description = this.description;
       let url = this.link;
       if (!url) {
-        url = 'https://google.com/'
+        url = 'https://segmint.app/'
       }
       const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
       if(!urlPattern.test(url.trim().toLowerCase()) || (url.length > 0 && url.trim().split(' ').length === 1 && url.indexOf('.') !== -1)) {
@@ -382,7 +386,6 @@ canvas {
 }
 .fee {
   font-size: 14px;
-  margin-bottom: 10px;
 }
 .file-upload {
   margin: 10px;

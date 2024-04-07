@@ -1,11 +1,13 @@
 <template>
-  <div class="container">
+  <div class="container" @mousedown.stop="clearSelectionIfNotInProgress">
     <div class="content">
       <ModerationModal name='moderation-modal' :id='moderationId' @close="closeModerationModal"/>
+      <KingComponent :onclick='showKingRulesPopup'></KingComponent>
       <div class="canvas-container" @mouseup="onMouseUp" @mouseleave="onMouseLeave" @mousedown="onMouseDown" @mousemove="onMouseMove">
         <div class='canvas-stack'>
           <canvas class='main-canvas' ref="canvas" width="1000" height="1000"></canvas>
           <canvas :style='oldCanvasStyles' class='old-canvas' ref="canvasOld" width="1000" height="1000"></canvas>
+          <div :style='highlightLastNft()'></div>
         </div>
         <div class="hover-popup" :style="highLightPopupStyles">
           {{highlightNftDescription}}
@@ -22,12 +24,12 @@
         </div>
         <br />
       </div>
-      <button class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess && this.badTiles.length === 0" v-on:click="claim">
+      <button @mousedown.stop class="primary-button mint-button" v-if="this.selectionStartX !== null && !this.selectionInProcess && this.badTiles.length === 0" v-on:click="claim">
         Mint segment
       </button>
     </div>
     <FooterComponent></FooterComponent>
-  </div>  
+  </div>
 </template>
 
 <script>
@@ -35,14 +37,15 @@ import ModerationModal from '@/components/ModerationModal.vue'
 import FooterComponent from '@/components/FooterComponent.vue'
 import { getMainBackgroundTileColor, getMainForegroundTileColor } from '@/utils/pixels'
 import isMobile from 'ismobilejs';
+import KingComponent from '@/components/KingComponent.vue'
 
 // import zoomMixin from "@/mixins/zoom"
 
 export default {
   name: 'CanvasComponent',
-  components: {ModerationModal, FooterComponent},
+  components: { KingComponent, ModerationModal, FooterComponent},
   // mixins: [zoomMixin],
-  props: ['isEditingMode', 'openMint', 'openLink'],
+  props: ['isEditingMode', 'toggleEditingMode', 'openMint', 'openLink', 'showKingRulesPopup'],
   data() {
     return {
       ctx: null,
@@ -60,7 +63,7 @@ export default {
       lastMousePosX: 0,
       lastMousePosY: 0,
       selectionTriedCounter: 0,
-      isMobile: isMobile(window.navigator).any
+      isMobile: isMobile(window.navigator).any,
     }
   },
   computed: {
@@ -254,6 +257,14 @@ export default {
       this.selectionEndX = null;
       this.selectionEndY = null;
     },
+    clearSelectionIfNotInProgress() {
+      if (!this.selectionInProcess) {
+        this.clearSelection();
+        if (this.$props.isEditingMode) {
+          this.$props.toggleEditingMode();
+        }
+      }
+    },
     drawTile(tile, epoch) {
       this.imageData.data.set(tile.pixels);
       if (tile.epoch === epoch) {
@@ -276,6 +287,25 @@ export default {
         }
       }
     },
+    highlightLastNft() {
+      if (!this.$store.state.Provider.collectionLoaded || this.$store.state.Provider.lastNftId <= 0) {
+        return {}
+      }
+      // console.log(this.$store.state.Provider.nftCoordsById[this.$store.state.Provider.lastNftId])
+      let coords = this.$store.state.Provider.nftCoordsById[this.$store.state.Provider.lastNftId];
+      if (!coords) {
+        return {}
+      }
+      return {
+        border: '3px solid black',
+        position: 'absolute',
+        left: `${coords.x - 3}px`,
+        top: `${coords.y - 3}px`,
+        width: `${coords.width}px`,
+        height: `${coords.height}px`,
+        'borderImage': `url("data:image/svg+xml;charset=utf-8,%3Csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cstyle%3Epath%7Banimation:stroke 2s infinite linear%3B%7D%40keyframes stroke%7Bto%7Bstroke-dashoffset:776%3B%7D%7D%3C/style%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff0000' /%3E%3Cstop offset='25%25' stop-color='%23c05c7e' /%3E%3Cstop offset='50%25' stop-color='%23f3826f' /%3E%3Cstop offset='100%25' stop-color='%23ffb961' /%3E%3C/linearGradient%3E %3Cpath d='M1.5 1.5 l97 0l0 97l-97 0 l0 -97' stroke-linecap='square' stroke='url(%23g)' stroke-width='3' stroke-dasharray='388'/%3E %3C/svg%3E") 1`
+      }
+    },
     styleForBadTile: function (tile) {
       // Style for one tile (20x20) in case
       // Selection overlaps already purchased tile
@@ -289,8 +319,14 @@ export default {
       }
     },
     onMouseDown(event) {
+      event && event.preventDefault();
+      event && event.stopPropagation();
       if (!this.collectionLoaded)
         return;
+
+      if (!this.$props.isEditingMode) {
+        this.$props.toggleEditingMode();
+      }
 
       if (this.isMobile && !this.isEditingMode) {
         // On mobile selection available only in editing mode;
@@ -300,7 +336,7 @@ export default {
           } else {
             let nft = this.$store.state.Provider.nftDataById[this.highLightNftId];
             if (nft && nft.url) {
-              const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+              const urlPattern = /^(https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
               if (urlPattern.test(nft.url)) {
                 this.onLinkOpen(nft.url);
               }
@@ -316,7 +352,7 @@ export default {
           this.selectionTriedCounter += 1;
           setTimeout(() => {
             this.selectionTriedCounter -= 1;
-          }, 5000);
+          }, 1000);
         }
       }, 200);
 
@@ -435,7 +471,7 @@ export default {
           this.showModerationPopup(this.highLightNftId);
         } else {
           if (nft && nft.url) {
-            const urlPattern = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+            const urlPattern = /^(https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
             if (urlPattern.test(nft.url)) {
               this.onLinkOpen(nft.url);
             }
@@ -457,7 +493,8 @@ export default {
       //   this.clearSelection();
       // }
     },
-    claim() {
+    claim(e) {
+      e && e.preventDefault();
       if (this.$store.state.Provider.account) {
         this.$props.openMint(this.selectedWidth, this.selectedHeight, this.selectionStartX, this.selectionStartY);
       } else {
@@ -472,6 +509,11 @@ export default {
     closeModerationModal() {
       this.$modal.hide('moderation-modal');
     },
+    preventDefault(e) {
+      console.log('prevent default');
+      e && e.preventDefault();
+      e && e.stopPropagation();
+    }
   }
 }
 </script>
@@ -491,7 +533,7 @@ export default {
   flex: 1;
 }
 .canvas-container {
-  margin: 100px auto 120px;
+  margin: 10px auto 120px;
   position: relative;
   width: 1000px;
   height: 1000px;

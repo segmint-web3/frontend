@@ -3,14 +3,14 @@
     <MyNftComponent v-if='myNftOpened' :onError='onError' :onClose='closeMyNfts' :openEditNft='openEditNft'/>
     <RulesModal name='rules-modal' />
     <MessageModal name='message-modal' :message='message'/>
+    <KingRulesModal name='king-rules-modal' @close="closeKingRulesModal" :onMint='onKingModalMint'/>
     <ClaimModal name='mint-modal' :id='mintModalData.id' :width="mintModalData.selectedWidth" :height="mintModalData.selectedHeight" :x="mintModalData.selectionStartX" :y="mintModalData.selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
     <LinkWarningModal name='link-warning-modal' :url='openLinkUrl' @close="closeLinkWarningModal"/>
-    <HeaderComponent :openMyNfts='openMyNfts' :openFaq='openFaq' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
-    <CanvasComponent ref='canvas' :isEditingMode='isEditingMode' :openMint='openMint' :openLink='openLink' />
+    <HeaderComponent :openKingRules='showKingRulesPopup' :openMyNfts='openMyNfts' :openFaq='openFaq' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' />
+    <CanvasComponent ref='canvas' :showKingRulesPopup='showKingRulesPopup' :isEditingMode='isEditingMode' :toggleEditingMode='toggleEditingMode' :openMint='openMint' :openLink='openLink' />
     <div v-if='!collectionPreLoaded' class='loading-fullscreen'>
       <div>
         <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="loading-logo">
-        <h2 class='collection-name-header'>{{collectionName}} collection</h2>
         <p>Take your place in blockchain history!</p>
         <p class="loading-text">Loading collection...</p>
         <div class="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -34,26 +34,26 @@ import HeaderComponent from './components/HeaderComponent.vue'
 import CanvasComponent from './components/CanvasComponent.vue'
 import MyNftComponent from "@/components/MyNftComponent.vue";
 import RulesModal from "@/components/RulesModal.vue";
-import { AvailablePages } from '@/utils/pages'
 import ClaimModal from '@/components/ClaimModal.vue'
 import MessageModal from '@/components/MessageModal.vue'
 import LinkWarningModal from '@/components/LinkWarningModal.vue'
+import KingRulesModal from '@/components/KingRulesModal.vue'
 
 export default {
   name: 'App',
   components: {
+    KingRulesModal,
     MessageModal,
     ClaimModal,
     HeaderComponent,
     CanvasComponent,
     MyNftComponent,
     RulesModal,
-    LinkWarningModal
+    LinkWarningModal,
   },
   data() {
     return {
       pageClass: '',
-      collectionName: '',
       openLinkUrl: '',
       publicPath: process.env.BASE_URL,
       myNftOpened: false,
@@ -80,23 +80,8 @@ export default {
     }
   },
   mounted() {
-    const validPages = AvailablePages;
-    let pageInUrl;
-    for (let page of validPages) {
-      if (window.location.href.indexOf(page) === 8) {
-        pageInUrl = page;
-      }
-    }
-    if (validPages.indexOf(pageInUrl) === -1) {
-      pageInUrl = localStorage.getItem('page');
-    }
-    if (validPages.indexOf(pageInUrl) === -1) {
-      pageInUrl = validPages[Math.floor(Math.random() * 3)];
-    }
-    localStorage.setItem('page', pageInUrl);
-    this.collectionName = pageInUrl;
-    this.pageClass = 'global-page-style ' + pageInUrl;
-    this.$store.dispatch('Provider/init', {page: pageInUrl});
+    this.pageClass = 'global-page-style ocean';
+    this.$store.dispatch('Provider/init', {});
     this.$modal.show('rules-modal');
   },
   methods: {
@@ -117,6 +102,7 @@ export default {
       e.preventDefault();
     },
     toggleEditingMode() {
+      console.log('toggleEditingModetoggleEditingMode')
       this.isEditingMode = !this.isEditingMode;
     },
     openEditNft(id, width, height, x, y) {
@@ -151,6 +137,19 @@ export default {
     },
     closeLinkWarningModal() {
       this.$modal.hide('link-warning-modal');
+    },
+    showKingRulesPopup() {
+      console.log('showKingRulesPopup');
+      this.$modal.show('king-rules-modal');
+    },
+    closeKingRulesModal() {
+      this.$modal.hide('king-rules-modal');
+    },
+    onKingModalMint() {
+      if (!this.isEditingMode) {
+        this.toggleEditingMode();
+      }
+      this.$modal.hide('king-rules-modal');
     },
     onError(message) {
       this.message = message;

@@ -2,13 +2,9 @@
   <div class="header-wrapper">
     <div class="header-wide">
       <img :src="`${publicPath}icons/logo.svg`" alt="logo" class="logo">
-      <div :class='`page-button-container ${pagesDropdownVisible ? "with-background" : ""}`'>
-        <a href="#" :class='`secondary-button page-button  ${pagesDropdownVisible ? `without-icon ${this.$store.state.Provider.page}` : "with-icon"}`' :style='`background-image: url("${publicPath}icons/switch_page.svg")`' @click='this.togglePagesDropdown'></a>
-        <a v-if='pagesDropdownVisible' href="#" :class='`secondary-button page-button page-button-dropdown-first ${secondPage}`' @click='this.chooseSecondPage'></a>
-        <a v-if='pagesDropdownVisible' href="#" :class='`secondary-button page-button page-button-dropdown-second ${thirdPage}`' @click='this.chooseThirdPage'></a>
-      </div>
       <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='$props.openMyNfts'>My NFT</a>
       <a href="#" class="secondary-button faq-button" @click='$props.openFaq'>Rules</a>
+      <a v-if="$store.state.Provider.king.kingContract" href="#" class="secondary-button king-button" @click='$props.openKingRules'>KING?</a>
     </div>
     <div class="header-mobile">
       <img :src="`${publicPath}icons/menu.svg`" alt="menu" class="menu" @click="toggleMobileMenu">
@@ -17,21 +13,20 @@
         <div class="flex mobile-switch-wrapper">
           <label for="switch" class="label">Mint mode</label>
           <label class="mode-switch">
-            <input type="checkbox" id="switch" :checked="mintMode" @change="toggleMode($event)">
+            <input type="checkbox" id="switch" :checked="this.$props.isEditingMode" @change="toggleMode($event)">
             <span class="slider"></span>
           </label>
         </div>
-        <a href="#" class="secondary-button mobile-open-page-button" @click='this.chooseSecondPage'>{{ `${secondPage} page` }}</a>
-        <a href="#" class="secondary-button mobile-open-page-button" @click='this.chooseThirdPage'>{{ `${thirdPage} page` }}</a>
         <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='this.openMyNftsMobile'>My NFT</a>
         <a href="#" class="secondary-button faq-button" @click='this.openFaqMobile'>Rules</a>
+        <a v-if="$store.state.Provider.king.kingContract" href="#" class="secondary-button king-button" @click='$props.openKingRules'>KING?</a>
       </div>
     </div>
     <div class="flex">
       <div class="mode-switch-wrapper">
         <label for="switch" class="label">Mint mode</label>
         <label class="mode-switch">
-          <input type="checkbox" id="switch" :checked="mintMode" @change="toggleMode($event)">
+          <input type="checkbox" id="switch" :checked="this.$props.isEditingMode" @change="toggleMode($event)">
           <span class="slider"></span>
         </label>
       </div>
@@ -49,7 +44,6 @@
   </div>
 </template>
 <script>
-import { AvailablePages } from '@/utils/pages'
 
 export default {
   name: 'HeaderComponent',
@@ -61,17 +55,8 @@ export default {
       mintMode: false
     }
   },
-  props: ['openMyNfts', 'openFaq', 'isEditingMode', 'toggleEditingMode'],
+  props: ['openMyNfts', 'openFaq', 'openKingRules', 'isEditingMode', 'toggleEditingMode'],
   computed: {
-    secondPage() {
-      return AvailablePages.filter(p => p !== this.$store.state.Provider.page)[0];
-    },
-    thirdPage() {
-      return AvailablePages.filter(p => p !== this.$store.state.Provider.page)[1];
-    },
-    currentPage() {
-      return this.$store.state.Provider.page;
-    },
     address() {
       let str = this.$store.state.Provider.account._address;
       return str.slice(0, 7) + '...' + str.slice(-4);
@@ -119,8 +104,7 @@ export default {
       this.menuOpened = false;
       this.openFaq();
     },
-    toggleMode(e){
-      this.mintMode = e.target.checked;
+    toggleMode(){
       this.menuOpened = false;
       this.toggleEditingMode();
     }
@@ -197,6 +181,13 @@ export default {
 }
 
 .faq-button {
+  margin-left: 10px;
+  width: 100px;
+  padding: 5px;
+  text-transform: uppercase;
+}
+
+.king-button {
   margin-left: 10px;
   width: 100px;
   padding: 5px;

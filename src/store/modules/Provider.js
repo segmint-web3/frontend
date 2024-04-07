@@ -3,6 +3,7 @@ import {VenomConnect} from "venom-connect";
 import {Address, ProviderRpcClient, Subscriber} from "everscale-inpage-provider";
 import { EverscaleStandaloneClient } from "everscale-standalone-client";
 import CollectionAbi from "./abi/SegmintCollection.abi.json";
+import KingAbi from "./abi/KingOfSegmint.abi.json";
 import NftAbi from "./abi/SegmintNft.abi.json";
 import IndexAbi from "./abi/Index.abi.json";
 import BlockListAbi from "./abi/BlockList.abi.json";
@@ -17,22 +18,11 @@ import { getState } from '@/utils/indexer'
 let pause = 1;
 const fetchFromIndexer = true;
 
-const Pages = {
-  ocean: {
-    collection: new Address("0:1a98a60471cb91af9f7c47063c2d2a5c4df325b28d53f3b3b2d05bcc5e6b81b8"),
-    blocklist: new Address("0:84ce0db6019a06bf3cc8b1ac7a626993981bca23d7c6e97843735dd383093a28"),
-    nftCode: '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',
-  },
-  desert: {
-    collection: new Address("0:7f640c417b44e1a0bd870b502a47292572b78a33dfccc6c63c67c171d6505aaa"),
-    blocklist: new Address("0:28fa45ac10075d1296813589b45bfa48e33ab0faaef0ea9f743170b299b293f4"),
-    nftCode: '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' ,
-  },
-  forest: {
-    collection: new Address("0:e607b54636f6d26b92f52f4c8ad2e013eee4415ef151f0881e275abf79aaebd7"),
-    blocklist: new Address("0:9d3d68646544dd2344ff4e18220f5cd466ec8cb2c8380e31c0676978c97dd8df"),
-    nftCode: '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'
-  }
+const Contracts = {
+  collection: new Address("0:c2fcca22ebb8afb847d783e5c0bc951d982ca7cf21fa91f5033fc64dea8cc322"),
+  blocklist: new Address("0:a7f2a26851c1b67d136818f690570723dc5f36dee7f13ddce95e3a26cc35a7e1"),
+  king: new Address("0:5916318a94870bffafb4da42b094f1ff6ed28e70b42921d379424a36db1d7891"),
+  nftCode: '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',
 }
 
 // Empty index code.
@@ -59,13 +49,13 @@ const standaloneFallback = () =>
     },
   });
 
-async function loadCollection(provider, page, commit, getRefreshEnabled) {
+async function loadCollection(provider, commit, getRefreshEnabled) {
   let collectionSubscriber;
   try {
     collectionSubscriber = new provider.Subscriber()
     // Subscribe at first
-    const collectionContract = new provider.Contract(CollectionAbi, Pages[page].collection);
-    const blockListContract = new provider.Contract(BlockListAbi, Pages[page].blocklist);
+    const collectionContract = new provider.Contract(CollectionAbi, Contracts.collection);
+    const blockListContract = new provider.Contract(BlockListAbi, Contracts.blocklist);
 
     let {fields: blockedListParsedState} = await blockListContract.getFields({});
     let blockedNftById = {};
@@ -100,14 +90,13 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
     console.log('get new state');
 
     if (fetchFromIndexer) {
-      let {state : walletState} = await provider.getFullContractState({address: new Address('0:71ede2632f8eebb649cdd6eb19c637a3bfd165b7a01050eb172dcf83d9bbdc58')})
-      const indexerState = await getState(collectionContract.address.toString(), walletState.lastTransactionId.lt);
+      let {state : collectionState} = await provider.getFullContractState({address: Contracts.collection})
+      const indexerState = await getState(collectionContract.address.toString(), collectionState.lastTransactionId.lt);
       console.log('state got', ((Date.now() - seconds) / 1000).toFixed(1));
       lastCollectionTransactionLt = new BigNumber(indexerState.lastTransactionLt);
       commit('Provider/setEpoch', { epoch: indexerState.currentEpoch_, price: indexerState.currentEpochTilePrice_ });
       commit('Provider/setMintDisabled', indexerState.mintDisabled_);
-      commit('Provider/setCollection', { collectionContract, nftTvc: await provider.codeToTvc(Pages[page].nftCode) });
-
+      commit('Provider/setCollection', { collectionContract, nftTvc: await provider.codeToTvc(Contracts.nftCode) });
       let tilesByIndex = indexerState.tilesByIndex;
       for (let y = 0; y < 50; y++) {
         await new Promise((resolve) => setTimeout(resolve, 1));
@@ -149,6 +138,7 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
       // load tiles
       let tilesColorsByIndex = {};
       let tilesByIndex = {};
+      let nftCache = {};
 
       let { fields: parsedState } = await collectionContract.getFields({
         allowPartial: true,
@@ -160,30 +150,90 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
 
       commit('Provider/setEpoch', { epoch: parsedState.currentEpoch_, price: parsedState.currentEpochTilePrice_ });
       commit('Provider/setMintDisabled', parsedState.mintDisabled_);
-      commit('Provider/setCollection', { collectionContract, nftTvc: await provider.codeToTvc(Pages[page].nftCode) });
+      commit('Provider/setCollection', { collectionContract, nftTvc: await provider.codeToTvc(Contracts.nftCode) });
 
       await new Promise((resolve) => setTimeout(resolve, 1));
 
       const maxNftIdBN = new BN('4294967295', 10);
       for (let elem of parsedState.tiles_) {
         let blockchainIndex = new BN(elem[0]);
-        let nftIdEpochId = new BN(elem[1].epochWitNftId);
+        let nftIdEpochId = new BN(elem[1]);
 
         let x = blockchainIndex.shrn(6).toNumber();
         let y = blockchainIndex.and(new BN('63', 10)).toNumber();
 
-        let nftId = nftIdEpochId.shrn(32).toString(10);
-        let epoch = nftIdEpochId.and(maxNftIdBN).toString(10);
-
+        const nftId = nftIdEpochId.shrn(32).toString(10);
+        const epoch = nftIdEpochId.and(maxNftIdBN).toString(10);
         const index = x * 50 + y;
-        tilesByIndex[index] = {
-          index: index,
-          nftId: nftId,
-          epoch: epoch,
-          x: x * 20,
-          y: y * 20,
-          pixels: blockedNftById[nftId] ? getMainBackgroundTileColor() : tryToDecodeTile(elem[1].colors)
-        };
+        const tvc = await provider.codeToTvc(Contracts.nftCode);
+
+        try {
+          let nftParsedState;
+          if (nftId in nftCache) {
+            nftParsedState = nftCache[nftId];
+          } else {
+            const {address: nftAddress} = await provider.getStateInit(NftAbi, {
+              workchain: 0,
+              tvc: tvc,
+              initParams: {
+                _id: nftId
+              }
+            })
+            const nftContract = new provider.Contract(NftAbi, nftAddress);
+            let {state : nftFullState} = await provider.getFullContractState({address: nftAddress});
+            let {fields} = await nftContract.getFields({cachedState: nftFullState});
+            nftParsedState = {
+              x: parseInt(fields.nftTileStartX_),
+              y: parseInt(fields.nftTileStartY_),
+              width: parseInt(fields.nftTileEndX_) - parseInt(fields.nftTileStartX_),
+              height: parseInt(fields.nftTileEndY_) -  parseInt(fields.nftTileStartY_),
+              colors: fields.colors_,
+            }
+            commit('Provider/setNftData', {
+              id: nftId,
+              description: fields.description_,
+              url: fields.url_
+            });
+
+            nftCache[nftId] = nftParsedState;
+            // to avoid ddos
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+          tilesByIndex[index] = {
+            index: index,
+            nftId: nftId,
+            epoch: epoch,
+            x: x * 20,
+            y: y * 20,
+            pixels: tryToDecodeTile(nftParsedState.colors[(x - nftParsedState.x) * nftParsedState.height + y - nftParsedState.y])
+          };
+          commit('Provider/setTile', {
+            tile: tilesByIndex[index],
+            silent: true
+          });
+        } catch (e) {
+          tilesByIndex[index] = {
+            index: index,
+            nftId: nftId,
+            epoch: epoch,
+            x: x * 20,
+            y: y * 20,
+            pixels: getMainBackgroundTileColor()
+          };
+          commit('Provider/setTile', {
+            tile: tilesByIndex[index],
+            silent: true
+          });
+          // console.log(e);
+        }
+        // tilesByIndex[index] = {
+        //   index: index,
+        //   nftId: nftId,
+        //   epoch: epoch,
+        //   x: x * 20,
+        //   y: y * 20,
+        //   pixels: blockedNftById[nftId] ? getMainBackgroundTileColor() : tryToDecodeTile(elem[1].colors)
+        // };
       }
       await new Promise((resolve) => setTimeout(resolve, 1));
 
@@ -202,11 +252,6 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
             }
             commit('Provider/setTile', {
               tile: tile,
-              silent: true
-            });
-          } else {
-            commit('Provider/setTile', {
-              tile: tilesByIndex[index],
               silent: true
             });
           }
@@ -307,9 +352,9 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
       console.log('getTransactionsUpToLt', lastTransactionLt.toString());
       try {
         if (!fromContinuation) {
-          let {state : walletState} = await provider.getFullContractState({address: new Address('0:71ede2632f8eebb649cdd6eb19c637a3bfd165b7a01050eb172dcf83d9bbdc58')})
+          let {state : collectionState} = await provider.getFullContractState({address: Contracts.collection})
           fromContinuation = {
-            lt: walletState.lastTransactionId.lt,
+            lt: collectionState.lastTransactionId.lt,
             hash: '00'.repeat(32)
           }
         }
@@ -354,12 +399,51 @@ async function loadCollection(provider, page, commit, getRefreshEnabled) {
     collectionSubscriber && collectionSubscriber.unsubscribe();
     pause++;
     setTimeout(function() {
-      loadCollection(provider, page, commit, getRefreshEnabled);
+      loadCollection(provider, commit, getRefreshEnabled);
     }, pause > 100 ? 100000 : pause * 1000);
     console.log(e.message);
   }
 }
 
+async function fromStateToSetKingState (kingContract, cachedState) {
+  let { state, fields } = await kingContract.getFields({cachedState});
+  return {
+    kingContract: kingContract,
+    status: fields.status_,
+    endTime: parseInt(fields.endTime_),
+    currentKing: fields.king_,
+    currentKingNftId: fields.kingNftId_,
+    currentPot: new BigNumber(state.balance).div(1_000_000_000).toFixed(1),
+    winningAmount: new BigNumber(fields.winningAmount_).div(1_000_000_000).toFixed(1),
+    currentRound: parseInt(fields.roundNumber_),
+    roundHoldTime: parseInt(fields.needToHoldTime_),
+    lastTransactionLt: state.lastTransactionId.lt
+  }
+}
+async function loadKing(provider, commit) {
+  let kingSubscriber = new provider.Subscriber();
+  try {
+    const kingContract = new provider.Contract(KingAbi, Contracts.king);
+    kingSubscriber.states(Contracts.king).on(async  (state) => {
+      console.log('NEW KING STATE')
+      let {state: fullState} = await kingContract.getFullState();
+      commit('Provider/setKingState', await fromStateToSetKingState(kingContract, fullState));
+    });
+
+    // give subscriber some time to subscribe
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    let { state: fullState } = await kingContract.getFullState();
+    commit('Provider/setKingState', await fromStateToSetKingState(kingContract, fullState));
+  } catch (e) {
+    console.log('load king error', e);
+    kingSubscriber && kingSubscriber.unsubscribe();
+    setTimeout(function() {
+      loadKing(provider, commit);
+    }, 30_000);
+  }
+  // Subscribe at first
+
+}
 async function fetchAccountBalance(address, provider, commit) {
   provider.getBalance(address).then(function(balance) {
     if (balance) {
@@ -368,10 +452,10 @@ async function fetchAccountBalance(address, provider, commit) {
   })
 }
 
-async function fetchUserNft(id, page, userAddress, provider, commit) {
+async function fetchUserNft(id, userAddress, provider, commit) {
   const {address: nftAddress} = await provider.getStateInit(NftAbi, {
     workchain: 0,
-    tvc: await provider.codeToTvc(Pages[page].nftCode),
+    tvc: await provider.codeToTvc(Contracts.nftCode),
     initParams: {
       _id: id
     }
@@ -382,8 +466,7 @@ async function fetchUserNft(id, page, userAddress, provider, commit) {
     userAddress: userAddress,
     nft: {
       address: nftAddress,
-      collectionName: page,
-      collectionAddress: Pages[page].collection,
+      collectionAddress: Contracts.collection,
       id: nftInfo.id,
       owner: nftInfo.owner,
       lockedAmount: nftInfo.lockedAmount,
@@ -399,83 +482,77 @@ async function fetchUserNft(id, page, userAddress, provider, commit) {
 
 async function fetchUserNfts(userAddress, provider, collectionContract, commit) {
   console.log('Fetch users nfts');
-  for (let page of Object.keys(Pages)) {
-    let nftTvc = await provider.codeToTvc(Pages[page].nftCode);
-    const { hash: indexCodeHash } = await provider.setCodeSalt({
-      code: indexCode,
-      salt: {
-        structure: [
-          {
-            name: "type",
-            type: "fixedbytes".concat("nft".length)
-          },
-          {
-            name: "collection",
-            type: "address"
-          }, {
-            name: "owner",
-            type: "address"
-          }, ],
-        abiVersion: "2.1",
-        data: {
-          type: btoa("nft"),
-          collection: Pages[page].collection,
-          owner: userAddress,
-        }
-      },
-    })
-    const {accounts: userNftsContracts} = await provider.getAccountsByCodeHash({codeHash: indexCodeHash});
-
-    let nfts = [];
-    for (let indexAddress of userNftsContracts) {
-      try {
-        let contract = new provider.Contract(IndexAbi, indexAddress);
-        let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
-
-        const nftContract = new provider.Contract(NftAbi, nftAddress);
-        const {state: nftContractFullState} = await nftContract.getFullState();
-
-        if (nftContractFullState && nftContractFullState.isDeployed) {
-          let nftInfo = await nftContract.methods.getNftCustomData({answerId:0}).call({responsible: true, cachedState: nftContractFullState});
-          if (nftInfo.owner.equals(userAddress)  && nftInfo.collection.equals(Pages[page].collection)) {
-            const expectedNftAddress = await provider.getExpectedAddress(NftAbi, { workchain: 0, tvc: nftTvc, initParams: { _id: nftInfo.id } });
-            if (expectedNftAddress.equals(nftAddress)) {
-              commit('Provider/setUserNft', {
-                userAddress: userAddress,
-                nft: {
-                  address: nftAddress,
-                  collectionName: page,
-                  collectionAddress: Pages[page].collection,
-                  id: nftInfo.id,
-                  owner: nftInfo.owner,
-                  lockedAmount: nftInfo.lockedAmount,
-                  description: nftInfo.description,
-                  url: nftInfo.url,
-                  tileStartX: parseInt(nftInfo.tileStartX),
-                  tileStartY: parseInt(nftInfo.tileStartY),
-                  tileEndX: parseInt(nftInfo.tileEndX),
-                  tileEndY: parseInt(nftInfo.tileEndY)
-                }
-              })
-            } else {
-              console.log('bad nft address', nftInfo.id);
-            }
-          } else {
-            console.log('wrong')
-          }
-        }
-      } catch (e) {
-        console.log(e);
+  let nftTvc = await provider.codeToTvc(Contracts.nftCode);
+  const { hash: indexCodeHash } = await provider.setCodeSalt({
+    code: indexCode,
+    salt: {
+      structure: [
+        {
+          name: "type",
+          type: "fixedbytes".concat("nft".length)
+        },
+        {
+          name: "collection",
+          type: "address"
+        }, {
+          name: "owner",
+          type: "address"
+        }, ],
+      abiVersion: "2.1",
+      data: {
+        type: btoa("nft"),
+        collection: Contracts.collection,
+        owner: userAddress,
       }
+    },
+  })
+  const {accounts: userNftsContracts} = await provider.getAccountsByCodeHash({codeHash: indexCodeHash});
+  let nfts = [];
+  for (let indexAddress of userNftsContracts) {
+    try {
+      let contract = new provider.Contract(IndexAbi, indexAddress);
+      let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
+
+      const nftContract = new provider.Contract(NftAbi, nftAddress);
+      const {state: nftContractFullState} = await nftContract.getFullState();
+
+      if (nftContractFullState && nftContractFullState.isDeployed) {
+        let nftInfo = await nftContract.methods.getNftCustomData({answerId:0}).call({responsible: true, cachedState: nftContractFullState});
+        if (nftInfo.owner.equals(userAddress)  && nftInfo.collection.equals(Contracts.collection)) {
+          const expectedNftAddress = await provider.getExpectedAddress(NftAbi, { workchain: 0, tvc: nftTvc, initParams: { _id: nftInfo.id } });
+          if (expectedNftAddress.equals(nftAddress)) {
+            commit('Provider/setUserNft', {
+              userAddress: userAddress,
+              nft: {
+                address: nftAddress,
+                collectionAddress: Contracts.collection,
+                id: nftInfo.id,
+                owner: nftInfo.owner,
+                lockedAmount: nftInfo.lockedAmount,
+                description: nftInfo.description,
+                url: nftInfo.url,
+                tileStartX: parseInt(nftInfo.tileStartX),
+                tileStartY: parseInt(nftInfo.tileStartY),
+                tileEndX: parseInt(nftInfo.tileEndX),
+                tileEndY: parseInt(nftInfo.tileEndY)
+              }
+            })
+          } else {
+            console.log('bad nft address', nftInfo.id);
+          }
+        } else {
+          console.log('wrong')
+        }
+      }
+    } catch (e) {
+      console.log(e);
     }
   }
-
 }
 
 export const Provider = {
   namespaced: true,
   state: {
-    page: null,
     venomConnect: null,
     provider: null,
     standaloneProvider: null,
@@ -493,23 +570,34 @@ export const Provider = {
     setTileCounter: 0, // counter to reactive update bad tiles in selections
     mintDisabled: false,
     tilesByIndex: {},
+    nftCoordsById: {},
     nftDataById: {},
     blockedNftById: {},
     blockListManagers: {},
+    lastNftId: 0,
+    king: {
+      kingContract: null,
+      status: "0",
+      endTime: 0,
+      currentKing: null,
+      currentKingNftId: null,
+      currentPot: "0",
+      currentRound: 1,
+      winningAmount: "0",
+      roundHoldTime: 300,
+      lastTransactionLt: "0"
+    }
   },
   mutations: {
-    setPage(state, page) {
-      state.page = page;
-    },
     setVenomConnect(state, venomConnect) {
       state.venomConnect = venomConnect;
     },
     setStandaloneProvider(state, provider) {
       state.standaloneProvider = provider;
-      loadCollection(provider, state.page, this.commit, this.getters['Provider/getRefreshEnabled']);
+      loadCollection(provider, this.commit, this.getters['Provider/getRefreshEnabled']);
+      loadKing(provider, this.commit);
     },
     setProvider(state, provider) {
-      console.log('setProvider', provider);
       state.provider = provider;
       state.provider.subscribe('networkChanged').then((subscriber) => {
         subscriber.on('data', (event) => {
@@ -523,8 +611,34 @@ export const Provider = {
         });
       })
     },
+    setKingState(state, {
+      kingContract,
+      status,
+      endTime,
+      currentKing,
+      currentKingNftId,
+      currentPot,
+      winningAmount,
+      currentRound,
+      lastTransactionLt,
+    }) {
+      console.log(state.king.lastTransactionLt, lastTransactionLt)
+      if (new BigNumber(state.king.lastTransactionLt).lt(new BigNumber(lastTransactionLt))) {
+        state.king.kingContract = kingContract;
+        state.king.status = status;
+        state.king.endTime = endTime
+        state.king.currentKing = currentKing.toString();
+        state.king.currentKingNftId = currentKingNftId;
+        state.king.currentPot = currentPot;
+        state.king.winningAmount = winningAmount;
+        state.king.currentRound = currentRound;
+        state.king.lastTransactionLt = lastTransactionLt;
+      }
+      // state.king.endTime = Math.floor(Date.now()/1000) + 60 * 60 * 5;
+      // state.king.currentPot = "1345.95";
+      // state.king.winningAmount = "4321.95";
+    },
     setCollectionOutOfSync(state) {
-      console.log('setCollectionOutOfSync')
       state.collectionOutOfSync = true;
     },
     setCollection(state, {collectionContract, nftTvc}) {
@@ -541,6 +655,34 @@ export const Provider = {
       }
     },
     setTile(state, { tile, silent }) {
+      if (parseInt(tile.nftId) > state.lastNftId && tile.nftId !== '4294967295') {
+        state.lastNftId = parseInt(tile.nftId);
+      }
+      if (state.lastNftId - parseInt(tile.nftId) < 11) {
+        let nftCoords = state.nftCoordsById[tile.nftId];
+        if (!nftCoords) {
+          nftCoords = {
+            x: tile.x,
+            y: tile.y,
+            width: 20,
+            height: 20
+          };
+          state.nftCoordsById[tile.nftId] = nftCoords;
+        }
+        if (tile.x < nftCoords.x) {
+          nftCoords.width += nftCoords.x - tile.x;
+          nftCoords.x = tile.x;
+        } else if (tile.x >= nftCoords.x + nftCoords.width ) {
+          nftCoords.width += tile.x + 20 - (nftCoords.x + nftCoords.width);
+        }
+        if (tile.y < nftCoords.y) {
+          nftCoords.height += nftCoords.y - tile.y;
+          nftCoords.y = tile.y;
+        } else if (tile.y >= nftCoords.y + nftCoords.height ) {
+          nftCoords.height += tile.y + 20 - (nftCoords.y + nftCoords.height);
+        }
+      }
+
       if (state.blockedNftById[tile.nftId] === true) {
         state.tilesByIndex[tile.index] = {
           ...tile,
@@ -551,12 +693,12 @@ export const Provider = {
       }
       if (!silent) {
         state.setTileCounter++;
+        delete state.nftDataById[tile.nftId]
       }
-      delete state.nftDataById[tile.nftId]
     },
     nftMinted(state, {owner, id}) {
       if (state.account && state.account.equals(owner)) {
-        fetchUserNft(id, state.page, owner, state.provider, this.commit);
+        fetchUserNft(id, owner, state.provider, this.commit);
       }
     },
     setConnectedAccount(state, address) {
@@ -613,7 +755,20 @@ export const Provider = {
     setNftData(state, {id, description, url}) {
       // TODO think how to make better to trigger update
       let mapping = Object.assign({}, state.nftDataById) ;
-      // TODO validate url
+      // additional checks to prevent xss
+      // not really necessary but why not
+      var map = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        "`": '&#x60;'
+      };
+      url = url.replace(/[<>"'`]/g, function(m) { return map[m]; });
+      const urlPattern = /^(https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-/]))?/;
+      if (!urlPattern.test(url)) {
+        url = 'https://segmint.app/'
+      }
       mapping[id] = {description: description.slice(0, 2000), url: url.slice(0, 2000)};
       state.nftDataById = mapping;
     },
@@ -663,14 +818,9 @@ export const Provider = {
     },
   },
   actions:  {
-    changePage({state}, {newPage}) {
-      localStorage.setItem('page', newPage);
-      window.location.href = `https://${newPage}.segmint.app/`;
-    },
-    init({ state, commit }, {page}) {
+    init({ state, commit }) {
       if (state.venomConnect)
         return;
-      commit('setPage', page);
       const venomConnect = new VenomConnect({
         theme: 'light',
         checkNetworkId: 1000, //  1000 - venom testnet, 1337
@@ -824,7 +974,7 @@ export const Provider = {
         return;
       }
       if (url.toLowerCase().indexOf('http') !== 0) {
-        url = 'http://' + url;
+        url = 'https://' + url;
       }
       for (let x = tileStartX; x < tileEndX; x ++) {
         for (let y = tileStartY; y < tileEndY; y ++) {
@@ -835,7 +985,7 @@ export const Provider = {
           }
         }
       }
-      let collection = new state.provider.Contract(CollectionAbi, Pages[state.page].collection);
+      let collection = new state.provider.Contract(CollectionAbi, Contracts.collection);
       const promise = collection.methods.claimTiles({
         "tileStartX": tileStartX,
         "tileStartY": tileStartY,
@@ -857,7 +1007,7 @@ export const Provider = {
             console.log('Look for the first TX');
             await subscriber.trace(firstTx).filter(tx_in_tree => {
               try {
-                if (tx_in_tree.account.equals(Pages[state.page].collection)) {
+                if (tx_in_tree.account.equals(Contracts.collection)) {
                   txs.push(tx_in_tree);
                   return true;
                 }
@@ -873,7 +1023,7 @@ export const Provider = {
                   if (event.event === 'NftMinted') {
                     nftMinted = true;
                     setTimeout(() => {
-                      fetchUserNft(event.data.nftId, state.page, event.data.owner, state.provider, commit);
+                      fetchUserNft(event.data.nftId, event.data.owner, state.provider, commit);
                     }, 10000);
                     let x = parseInt(event.data.tileStartX);
                     let y = parseInt(event.data.tileStartY);
@@ -914,9 +1064,9 @@ export const Provider = {
       return promise;
     },
     redrawNft({state, commit}, {id, tiles, description, url}) {
-      let collection = new state.provider.Contract(CollectionAbi, Pages[state.page].collection);
+      let collection = new state.provider.Contract(CollectionAbi, Contracts.collection);
       if (url.toLowerCase().indexOf('http') !== 0) {
-        url = 'http://' + url;
+        url = 'https://' + url;
       }
       return state.standaloneProvider.getStateInit(NftAbi, {
         workchain: 0,
@@ -968,10 +1118,21 @@ export const Provider = {
         })
       })
     },
+    kingFinishRound({state, commit}) {
+      state.king.kingContract.methods.finishRound({}).sendExternal({
+        withoutSignature: true,
+      }).catch((e) => {
+        console.log(e);
+      })
+      setTimeout(async() => {
+        let { state: fullState } = await state.king.kingContract.getFullState();
+        commit('setKingState', await fromStateToSetKingState(state.king.kingContract, fullState));
+      }, 10000);
+    },
     addToBanList({state, commit}, {id}) {
-      const blockListContract = new provider.Contract(BlockListAbi, Pages[state.page].blocklist);
+      const blockListContract = new provider.Contract(BlockListAbi, Contracts.blocklist);
       return blockListContract.methods.addToBanList({
-        "collection": Pages[state.page].collection,
+        "collection": Contracts.collection,
         "nftId": id
       }).send({
         from: state.account,

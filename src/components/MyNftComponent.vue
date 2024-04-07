@@ -7,11 +7,8 @@
         <img :src="`${publicPath}icons/close.svg`" alt="close" class="close" @click='$props.onClose'>
       </div>
       <div class='my-nft-container'>
-        <div v-for="nft in currentPageNfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :collectionName='nft.collectionName' :onError='onErrorAndClose' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
-        </div>
-        <div v-for="nft in otherPagesNfts" v-bind:key="nft.id" class='my-nft'>
-          <OneNftComponent :collectionName='nft.collectionName' :onError='onErrorAndClose' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
+        <div v-for="nft in nfts" v-bind:key="nft.id" class='my-nft'>
+          <OneNftComponent :onError='onErrorAndClose' :address='nft.address' :id='nft.id' :lockedAmount='nft.lockedAmount' :tileStartX='nft.tileStartX' :tileStartY='nft.tileStartY' :tileEndX='nft.tileEndX' :tileEndY='nft.tileEndY' :description='nft.description' :url='nft.url' :onedit='onEdit' />
         </div>
       </div>
     </div>
@@ -40,12 +37,6 @@ export default {
   },
   props: ['onClose', 'onError', 'openEditNft'],
   computed: {
-    currentPageNfts() {
-      return this.$store.state.Provider.userNfts.filter(n => n.collectionName === this.$store.state.Provider.page);
-    },
-    otherPagesNfts() {
-      return this.$store.state.Provider.userNfts.filter(n => n.collectionName !== this.$store.state.Provider.page);
-    },
     address() {
       return "";
     },
