@@ -85,7 +85,7 @@ export default {
   font-size: 18px;
   margin: 0 10px 10px;
   max-width: 300px;
-  text-align: right;
+  text-align: center;
   word-break: break-word;
   max-height: 500px;
 }
