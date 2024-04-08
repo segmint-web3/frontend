@@ -9,9 +9,8 @@
           The link provided below is intended for those who have minted NFT and <b>NOT</b> associated with SegMint or Venom Foundation.
           <br /><br />
           Exercise caution when accessing it, and please note that we do not assume any responsibility for its content or any potential risks associated with it.
-          <br />
-          <br />
-          <a :href='$props.url' target='_blank' style='color: #FFED6CFF; display: block'>{{$props.url}}</a>
+          <a :href='$props.url' target='_blank' class="link">{{$props.url}}</a>
+          <div class='instructions-line'></div>
         </div>
         <div class='buttons-container'>
           <button class="primary-button" v-on:click="this.close">
@@ -85,8 +84,14 @@ export default {
   font-size: 18px;
   margin: 0 10px 10px;
   max-width: 300px;
-  text-align: center;
+  text-align: left;
   word-break: break-word;
   max-height: 500px;
+}
+.link {
+  display: block;
+  text-align: center;
+  margin-top: 30px;
+  color: #FFED6CFF; 
 }
 </style>

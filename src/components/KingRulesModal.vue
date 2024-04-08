@@ -108,13 +108,6 @@ export default {
   color: var(--yellow);
   margin: 0;
 }
-.instructions-line {
-  margin: 24px 0;
-  width: 100%;
-  height: 1px;
-  background-color: var(--yellow);
-  opacity: 0.5;
-}
 .season {
   margin-top: 24px;
   text-align: center;

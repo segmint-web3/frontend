@@ -427,7 +427,7 @@ form button {
   right: 0;
   top: 0;
   bottom: 0;
-  background-color: var(--dark-night);
+  background-color: var(--window-bg);
   color: var(--yellow);
   font-weight: 700;
   display: flex;

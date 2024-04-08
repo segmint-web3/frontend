@@ -5,34 +5,36 @@
         <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>
         <div class='title'>&nbsp;&nbsp;King of Segmint</div>
       </div>
-      <div v-if='isKingGameInProgress' class='two-columns'>
+      <div v-if='isKingGameInProgress' class='two-columns title-wrapper'>
         <div class='left-side'>
           <div class="sub-title">Jackpot Prize:&nbsp;&nbsp;&nbsp;</div>
           <div class="sub-title">Current king:&nbsp;&nbsp;&nbsp;</div>
           <div class="sub-title">Time Left:&nbsp;&nbsp;&nbsp;</div>
         </div>
         <div class='right-side'>
-          <div class="sub-title">&nbsp;&nbsp;&nbsp;{{this.pot}} VENOM</div>
+          <div class="sub-title bold">&nbsp;&nbsp;&nbsp;{{this.pot}} VENOM</div>
           <div>&nbsp;&nbsp;&nbsp;<a :href='this.kingVenomScan' class="sub-title" target='_blank'>{{ currentKingAddress === connectedAccount ? "You're the leader!" : currentKingAddress.slice(0, 5) + ' . . . ' + currentKingAddress.slice(61) }}</a></div>
           <div class="sub-title time">&nbsp;&nbsp;&nbsp;{{countDown}}</div>
         </div>
       </div>
-      <div v-if='!isKingGameInProgress' class='two-columns mobile-one-column'>
-        <div class='left-side'>
+      <div v-if='!isKingGameInProgress' class="title-wrapper">
+        <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>
+        <div class='title'>&nbsp;&nbsp;King of Segmint</div>
+        <!-- <div class='left-side'>
           <div class='title'>King of Segmint <span class='mobile-hidden'>-</span></div>
-        </div>
-        <div class='right-side'>
+        </div> -->
+        <!-- <div class='right-side'>
           <div class='title'>&nbsp;Game finished</div>
-        </div>
+        </div> -->
       </div>
       <div v-if='!isKingGameInProgress' class='two-columns'>
         <div class='left-side'>
-          <div class="sub-title">Winning amount:&nbsp;&nbsp;&nbsp;</div>
+          <div class="sub-title">Jackpot Prize:&nbsp;&nbsp;&nbsp;</div>
           <div class="sub-title">Winner:&nbsp;&nbsp;&nbsp;</div>
           <div class="sub-title">Next game:&nbsp;&nbsp;&nbsp;</div>
         </div>
         <div class='right-side'>
-          <div class="sub-title">&nbsp;&nbsp;&nbsp;{{this.winningAmount}} VENOM</div>
+          <div class="sub-title bold">&nbsp;&nbsp;&nbsp;{{this.winningAmount}} VENOM</div>
           <div>&nbsp;&nbsp;&nbsp;<a :href='this.kingVenomScan' class="sub-title" target='_blank'>{{ currentKingAddress === connectedAccount ? "You're the winner!" : currentKingAddress.slice(0, 5) + ' . . . ' + currentKingAddress.slice(61) }}</a></div>
           <div class="sub-title">&nbsp;&nbsp;&nbsp;Starting soon!</div>
         </div>
@@ -166,6 +168,9 @@ export default {
   flex-direction: row;
   justify-content: center;
 }
+.title-wrapper {
+  margin-bottom: 10px;
+}
 @media only screen and (max-width: 768px) {
   .mobile-one-column {
     flex-direction: column;
@@ -178,7 +183,7 @@ export default {
   text-align: right;
 }
 .sub-title {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--yellow);
 }
 .time {
