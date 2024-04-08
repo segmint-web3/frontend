@@ -413,8 +413,8 @@ async function fromStateToSetKingState (kingContract, cachedState) {
     endTime: parseInt(fields.endTime_),
     currentKing: fields.king_,
     currentKingNftId: fields.kingNftId_,
-    currentPot: new BigNumber(state.balance).div(1_000_000_000).toFixed(1),
-    winningAmount: new BigNumber(fields.winningAmount_).div(1_000_000_000).toFixed(1),
+    currentPot: new BigNumber(state.balance).div(1_000_000_000).toFixed(0),
+    winningAmount: new BigNumber(fields.winningAmount_).div(1_000_000_000).toFixed(0),
     currentRound: parseInt(fields.roundNumber_),
     roundHoldTime: parseInt(fields.needToHoldTime_),
     lastTransactionLt: state.lastTransactionId.lt
