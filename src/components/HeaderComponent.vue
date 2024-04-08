@@ -19,7 +19,7 @@
         </div>
         <a v-if="$store.state.Provider.account" href="#" class="secondary-button nft-button" @click='this.openMyNftsMobile'>My NFT</a>
         <a href="#" class="secondary-button faq-button" @click='this.openFaqMobile'>Rules</a>
-        <a v-if="$store.state.Provider.king.kingContract" href="#" class="secondary-button king-button" @click='$props.openKingRules'>KING?</a>
+        <a v-if="$store.state.Provider.king.kingContract" href="#" class="secondary-button king-button" @click='openKingRulesAndCloseMenu'>KING?</a>
       </div>
     </div>
     <div class="flex">
@@ -107,6 +107,10 @@ export default {
     toggleMode(){
       this.menuOpened = false;
       this.toggleEditingMode();
+    },
+    openKingRulesAndCloseMenu() {
+      this.menuOpened = false;
+      this.$props.openKingRules();
     }
   }
 }
