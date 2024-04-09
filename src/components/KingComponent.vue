@@ -3,23 +3,23 @@
     <div class="content" v-if='isKingLoaded' @click='this.$props.onclick'>
       <div v-if='isKingGameInProgress'>
         <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>
-        <div class='title'>&nbsp;&nbsp;King of Segmint</div>
+        <div class='title'>King of Segmint</div>
       </div>
       <div v-if='isKingGameInProgress' class='two-columns title-wrapper'>
         <div class='left-side'>
-          <div class="sub-title">Jackpot Prize:&nbsp;&nbsp;&nbsp;</div>
-          <div class="sub-title">Current king:&nbsp;&nbsp;&nbsp;</div>
-          <div class="sub-title">Time Left:&nbsp;&nbsp;&nbsp;</div>
+          <div class="sub-title">Jackpot Prize:</div>
+          <div class="sub-title">Current king:</div>
+          <div class="sub-title">Time Left:</div>
         </div>
         <div class='right-side'>
-          <div class="sub-title bold">&nbsp;&nbsp;&nbsp;{{this.pot}} VENOM</div>
-          <div>&nbsp;&nbsp;&nbsp;<a :href='this.kingVenomScan' class="sub-title" target='_blank'>{{ currentKingAddress === connectedAccount ? "You're the leader!" : currentKingAddress.slice(0, 5) + ' . . . ' + currentKingAddress.slice(61) }}</a></div>
-          <div class="sub-title time">&nbsp;&nbsp;&nbsp;{{countDown}}</div>
+          <div class="sub-title bold">{{this.pot}} VENOM</div>
+          <div><a :href='this.kingVenomScan' class="sub-title" target='_blank'>{{ currentKingAddress === connectedAccount ? "You're the leader!" : currentKingAddress.slice(0, 5) + ' . . . ' + currentKingAddress.slice(61) }}</a></div>
+          <div class="sub-title time">{{countDown}}</div>
         </div>
       </div>
       <div v-if='!isKingGameInProgress' class="title-wrapper">
         <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>
-        <div class='title'>&nbsp;&nbsp;King of Segmint</div>
+        <div class='title'>King of Segmint</div>
         <!-- <div class='left-side'>
           <div class='title'>King of Segmint <span class='mobile-hidden'>-</span></div>
         </div> -->
@@ -29,14 +29,14 @@
       </div>
       <div v-if='!isKingGameInProgress' class='two-columns'>
         <div class='left-side'>
-          <div class="sub-title">Jackpot Prize:&nbsp;&nbsp;&nbsp;</div>
-          <div class="sub-title">Winner:&nbsp;&nbsp;&nbsp;</div>
-          <div class="sub-title">Next game:&nbsp;&nbsp;&nbsp;</div>
+          <div class="sub-title">Jackpot Prize:</div>
+          <div class="sub-title">Winner:</div>
+          <div class="sub-title">Next game:</div>
         </div>
         <div class='right-side'>
-          <div class="sub-title bold">&nbsp;&nbsp;&nbsp;{{this.winningAmount}} VENOM</div>
-          <div>&nbsp;&nbsp;&nbsp;<a :href='this.kingVenomScan' class="sub-title" target='_blank'>{{ currentKingAddress === connectedAccount ? "You're the winner!" : currentKingAddress.slice(0, 5) + ' . . . ' + currentKingAddress.slice(61) }}</a></div>
-          <div class="sub-title">&nbsp;&nbsp;&nbsp;Starting soon!</div>
+          <div class="sub-title bold">{{this.winningAmount}} VENOM</div>
+          <div><a :href='this.kingVenomScan' class="sub-title" target='_blank'>{{ currentKingAddress === connectedAccount ? "You're the winner!" : currentKingAddress.slice(0, 5) + ' . . . ' + currentKingAddress.slice(61) }}</a></div>
+          <div class="sub-title">Starting soon!</div>
         </div>
       </div>
     </div>
@@ -147,7 +147,7 @@ export default {
   flex-direction: column;
   align-items: center;
   border: 2px solid var(--dark);
-  padding: 10px 50px;
+  padding: 20px 50px;
   cursor: pointer;
   border-radius: 20px;
   background: linear-gradient(262deg, #34277E 0%, #5C48D2 100%);
@@ -159,6 +159,7 @@ export default {
   font-size: 22px;
   min-width: 140px;
   margin-bottom: 10px;
+  margin-left: 10px;
   display: inline-block;
   line-height: 22px;
   vertical-align: text-bottom;
@@ -181,10 +182,13 @@ export default {
 }
 .left-side {
   text-align: right;
+  margin-right: 20px;
 }
+
 .sub-title {
   font-size: 18px;
   color: var(--yellow);
+  line-height: 22px;
 }
 .time {
   min-width: 100px;
