@@ -11,7 +11,7 @@
               <p class='secondary-text'>The last person who mint a segment becomes the king.</p>
             </li>
             <li>
-              <p class='secondary-text'>After that if no one mint a segment for an hour current king win the game and the prize.</p>
+              <p class='secondary-text'>After that if no one mint a segment for 5 minutes current king win the game and the prize.</p>
             </li>
             <li>
               <p class='secondary-text'>After each mint, the timer resets to the beginning.</p>

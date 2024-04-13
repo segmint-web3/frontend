@@ -15,7 +15,7 @@
               <p class='secondary-text'>Each season increases the price per pixel</p>
             </li>
             <li>
-              <p class='secondary-text'>You can burn your NFT if it has been painted over completely and get your tokens back</p>
+              <p class='secondary-text'>You can burn your NFT if it has been painted over completely and get your tokens back (minus 0.1 V commission and gas)</p>
             </li>
           </ul>
           <div class='instructions-warning'>

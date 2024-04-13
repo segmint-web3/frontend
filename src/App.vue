@@ -2,6 +2,7 @@
   <div id="app" :class='pageClass'>
     <MyNftComponent v-if='myNftOpened' :onError='onError' :onClose='closeMyNfts' :openEditNft='openEditNft'/>
     <RulesModal name='rules-modal' />
+    <MintSuccessfulModal name='mint-successful-modal' />
     <MessageModal name='message-modal' :message='message'/>
     <KingRulesModal name='king-rules-modal' @close="closeKingRulesModal" :onMint='onKingModalMint'/>
     <ClaimModal name='mint-modal' :id='mintModalData.id' :width="mintModalData.selectedWidth" :height="mintModalData.selectedHeight" :x="mintModalData.selectionStartX" :y="mintModalData.selectionStartY" :onsuccess="onClaimModalSuccess" :onerror='onClaimModalError' @close="closeClaimModal"/>
@@ -38,6 +39,7 @@ import ClaimModal from '@/components/ClaimModal.vue'
 import MessageModal from '@/components/MessageModal.vue'
 import LinkWarningModal from '@/components/LinkWarningModal.vue'
 import KingRulesModal from '@/components/KingRulesModal.vue'
+import MintSuccessfulModal from '@/components/MintSuccessfulModal.vue'
 
 export default {
   name: 'App',
@@ -50,6 +52,7 @@ export default {
     MyNftComponent,
     RulesModal,
     LinkWarningModal,
+    MintSuccessfulModal
   },
   data() {
     return {
@@ -83,6 +86,7 @@ export default {
     this.pageClass = 'global-page-style ocean';
     this.$store.dispatch('Provider/init', {});
     this.$modal.show('rules-modal');
+    // this.$modal.show('mint-successful-modal');
   },
   methods: {
     closeMyNfts() {
@@ -121,9 +125,12 @@ export default {
       this.mintModalData.selectionStartY = selectionStartY;
       this.$modal.show('mint-modal');
     },
-    onClaimModalSuccess() {
+    onClaimModalSuccess(isEdit) {
       this.$modal.hide('mint-modal');
       this.$refs.canvas.clearSelection();
+      if (!isEdit) {
+        this.$modal.show('mint-successful-modal');
+      }
     },
     onClaimModalError(errorMessage) {
       this.$modal.hide('mint-modal');

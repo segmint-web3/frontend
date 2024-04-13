@@ -87,11 +87,12 @@ export default {
   text-align: left;
   word-break: break-word;
   max-height: 500px;
+  overflow: scroll;
 }
 .link {
   display: block;
   text-align: center;
   margin-top: 30px;
-  color: #FFED6CFF; 
+  color: #FFED6CFF;
 }
 </style>

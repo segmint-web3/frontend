@@ -18,14 +18,14 @@
         </div>
       </div>
       <div v-if='!isKingGameInProgress' class="title-wrapper">
-        <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>
-        <div class='title'>King of Segmint</div>
-        <!-- <div class='left-side'>
-          <div class='title'>King of Segmint <span class='mobile-hidden'>-</span></div>
-        </div> -->
-        <!-- <div class='right-side'>
+<!--        <img :src='`${publicPath}king_icon.svg`' class='crown-icon'/>-->
+<!--        <div class='title'>King of Segmint</div>-->
+        <div class='left-side'>
+          <div class='title'>King of Segmint</div>
+        </div>
+        <div class='right-side'>
           <div class='title'>&nbsp;Game finished</div>
-        </div> -->
+        </div>
       </div>
       <div v-if='!isKingGameInProgress' class='two-columns'>
         <div class='left-side'>

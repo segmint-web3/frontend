@@ -283,7 +283,7 @@ export default {
           this.claimInProgress = true;
           promise.then(() => {
             this.claimInProgress = false;
-            this.$props.onsuccess();
+            this.$props.onsuccess(!!this.$props.id);
           }).catch((err) => {
             this.claimInProgress = false;
             console.log('on error', err);

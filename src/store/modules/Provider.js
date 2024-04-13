@@ -1,7 +1,7 @@
 /* eslint-disable */
 import {VenomConnect} from "venom-connect";
 import {Address, ProviderRpcClient, Subscriber} from "everscale-inpage-provider";
-import { EverscaleStandaloneClient } from "everscale-standalone-client";
+import {EverscaleStandaloneClient} from 'everscale-standalone-client'
 import CollectionAbi from "./abi/SegmintCollection.abi.json";
 import KingAbi from "./abi/KingOfSegmint.abi.json";
 import NftAbi from "./abi/SegmintNft.abi.json";
@@ -21,7 +21,7 @@ const fetchFromIndexer = true;
 const Contracts = {
   collection: new Address("0:2518283f592d7e8f7dac9bbb317de0af7a6a9bd985de06c317d18a11681d8c89"),
   blocklist: new Address("0:a2400e987a8039b2179eb5be74fbe692c6b253f9bc17cfa00853e635af27d9c8"),
-  king: new Address("0:fa4041a7759907ede9df9387345a9804b3a0a459180830301443ea1a8c529986"),
+  king: new Address("0:100fd85d27d883b63f4e3f24d0f49c6065c03fb00d53c2c5a7ad758f7ab3a3ae"),
   nftCode: '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',
 }
 
@@ -46,7 +46,7 @@ const standaloneFallback = () =>
       data: {
         endpoint: "https://jrpc.venom.foundation/"
       },
-    },
+    }
   });
 
 async function loadCollection(provider, commit, getRefreshEnabled) {
@@ -345,7 +345,7 @@ async function loadCollection(provider, commit, getRefreshEnabled) {
       } catch (e) {
         console.log('Get transactions error', e);
       }
-      setTimeout(fetchTransactionsRecursive, 10000);
+      setTimeout(fetchTransactionsRecursive, 15_000);
     }
 
     async function getTransactionsUpToLt(lastTransactionLt, fromContinuation, anti_stuck) {
@@ -373,7 +373,7 @@ async function loadCollection(provider, commit, getRefreshEnabled) {
         })
         if (targetFound || !continuation) {
           return transactions;
-        } else if (anti_stuck < 29) {
+        } else if (anti_stuck < 19) {
           await new Promise(resolve => setTimeout(resolve, anti_stuck * 10));
           return transactions.concat(await getTransactionsUpToLt(lastTransactionLt, continuation, anti_stuck + 1))
         } else {
@@ -381,7 +381,7 @@ async function loadCollection(provider, commit, getRefreshEnabled) {
           throw new Error('stuck');
         }
       } catch (e) {
-        if (anti_stuck >= 29) {
+        if (anti_stuck >= 19) {
           // Just return nothing
           console.log('We stuck!!!');
           commit('Provider/setCollectionOutOfSync', {});
@@ -421,28 +421,16 @@ async function fromStateToSetKingState (kingContract, cachedState) {
   }
 }
 async function loadKing(provider, commit) {
-  let kingSubscriber = new provider.Subscriber();
+  const kingContract = new provider.Contract(KingAbi, Contracts.king);
   try {
-    const kingContract = new provider.Contract(KingAbi, Contracts.king);
-    kingSubscriber.states(Contracts.king).on(async  (state) => {
-      console.log('NEW KING STATE')
-      let {state: fullState} = await kingContract.getFullState();
-      commit('Provider/setKingState', await fromStateToSetKingState(kingContract, fullState));
-    });
-
-    // give subscriber some time to subscribe
-    await new Promise(resolve => setTimeout(resolve, 1000));
     let { state: fullState } = await kingContract.getFullState();
     commit('Provider/setKingState', await fromStateToSetKingState(kingContract, fullState));
   } catch (e) {
     console.log('load king error', e);
-    kingSubscriber && kingSubscriber.unsubscribe();
-    setTimeout(function() {
-      loadKing(provider, commit);
-    }, 30_000);
   }
-  // Subscribe at first
-
+  let timeout = setTimeout(() => {
+    loadKing(provider, commit);
+  }, 10_000);
 }
 async function fetchAccountBalance(address, provider, commit) {
   provider.getBalance(address).then(function(balance) {
@@ -506,9 +494,28 @@ async function fetchUserNfts(userAddress, provider, collectionContract, commit) 
       }
     },
   })
-  const {accounts: userNftsContracts} = await provider.getAccountsByCodeHash({codeHash: indexCodeHash});
+  let accounts = [];
+  let antiStack = 10;
+  let fromContinuation;
+  while (--antiStack) {
+    let params = {
+      codeHash: indexCodeHash,
+    }
+    if (fromContinuation) {
+      params.continuation = fromContinuation;
+    }
+    const {accounts: userNftsContracts, continuation} = await provider.getAccountsByCodeHash(params);
+    accounts = accounts.concat(userNftsContracts);
+    if (continuation) {
+      fromContinuation = continuation;
+      await new Promise(resolve => setTimeout(resolve, 5_000));
+    } else {
+      break;
+    }
+  }
+
   let nfts = [];
-  for (let indexAddress of userNftsContracts) {
+  for (let indexAddress of accounts) {
     try {
       let contract = new provider.Contract(IndexAbi, indexAddress);
       let {owner: ownerAddress, nft: nftAddress, collection: collectionAddress} = await contract.methods.getInfo({answerId: 0}).call({responsible: true});
@@ -651,7 +658,7 @@ export const Provider = {
       state.collectionLoaded = true;
       if (!state.userNftsLoadingStarted && state.account) {
         state.userNftsLoadingStarted = true;
-        fetchUserNfts(state.account, state.provider, state.collectionContract, this.commit);
+        fetchUserNfts(state.account, state.standaloneProvider, state.collectionContract, this.commit);
       }
     },
     setTile(state, { tile, silent }) {
@@ -698,7 +705,7 @@ export const Provider = {
     },
     nftMinted(state, {owner, id}) {
       if (state.account && state.account.equals(owner)) {
-        fetchUserNft(id, owner, state.provider, this.commit);
+        fetchUserNft(id, owner, state.standaloneProvider, this.commit);
       }
     },
     setConnectedAccount(state, address) {
@@ -714,7 +721,7 @@ export const Provider = {
       }, 60 * 1000));
       if (address && state.collectionContract) {
         state.userNftsLoadingStarted = true;
-        fetchUserNfts(address, state.provider, state.collectionContract, this.commit);
+        fetchUserNfts(address, state.standaloneProvider, state.collectionContract, this.commit);
       } else {
         state.userNftsLoadingStarted = false;
       }
@@ -1023,7 +1030,7 @@ export const Provider = {
                   if (event.event === 'NftMinted') {
                     nftMinted = true;
                     setTimeout(() => {
-                      fetchUserNft(event.data.nftId, event.data.owner, state.provider, commit);
+                      fetchUserNft(event.data.nftId, event.data.owner, state.standaloneProvider, commit);
                     }, 10000);
                     let x = parseInt(event.data.tileStartX);
                     let y = parseInt(event.data.tileStartY);
@@ -1103,11 +1110,12 @@ export const Provider = {
           _id: id
         }
       }).then(function(data) {
-        let nftContract = new state.provider.Contract(NftAbi, data.address);
+        let nftContract = new state.standaloneProvider.Contract(NftAbi, data.address);
         return nftContract.getFields({}).then(function(nftFields) {
           if (nftFields.fields.isBurningBlocked_ === true) {
             return Promise.reject(new Error('NFT can\'t be burned because it is blocked for inappropriate content.'))
           }
+          nftContract = new state.provider.Contract(NftAbi, data.address);
           return nftContract.methods.burnNft({}).send({
             from: state.account,
             bounce: true,

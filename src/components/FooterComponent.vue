@@ -9,7 +9,7 @@
         <div class="title">Social networks:</div>
         <div class="socials">
           <a href="https://x.com/segmintapp" target="_blank"><img :src="`${publicPath}icons/socials-x.svg`" alt="x"></a>
-          <a href="https://discord.gg/gsYmc6uf" target="_blank"><img :src="`${publicPath}icons/socials-discord.svg`" alt="discord"></a>
+          <a href="https://discord.gg/P6dmQG9DuH" target="_blank"><img :src="`${publicPath}icons/socials-discord.svg`" alt="discord"></a>
           <a href="https://t.me/segmintapp" target="_blank"><img :src="`${publicPath}icons/socials-telegram.svg`" alt="telegram"></a>
         </div>
       </div>
